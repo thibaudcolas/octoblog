@@ -12,10 +12,9 @@ Après plusieurs heures à tester manuellement une Web App sur mon smartphone, l
 
 Armé de mon ami XKCD, je sais que le jeu en vaut la chandelle. En plus de préserver ma santé mentale, ce genre d'outil permettra un gain de temps substantiel lors des phases de test avec un, et surtout plusieurs appareils.
 
-[![Is it worth the time?](http://imgs.xkcd.com/comics/is_it_worth_the_time.png)](http://imgs.xkcd.com/comics/is_it_worth_the_time.png)
+[![Is it worth the time?](http://imgs.xkcd.com/comics/is_it_worth_the_time.png)](http://xkcd.com/1205/)
 
 ## L'outil idéal
-================
 
 L'outil idéal ne nécessite pas ou peu d'installation. Il fonctionne sur tous les terminaux iOS et Android du moment, et sa mise en place est rapide. Cet outil utopique fonctionne à la fois pour des appareils partageant le même réseau, mais aussi lorsque les devices ne sont connectées entre elles que par internet. L'appariement des appareils est simple (détection puis confirmation, passphrase, code, etc).
 
