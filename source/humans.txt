@@ -12,7 +12,7 @@
   Twitter: @llaumgui
 
 /* SITE */
-  Last update 2014-01-01
+  Last update 2014-03-09
   Standards: HTML5, Sass
   Components: Octopress, GitHub Pages
   Software: Mac OS X, Sublime Text 2, Git
