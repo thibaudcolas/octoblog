@@ -1,6 +1,7 @@
 body > header {
-  background: $header-bg;
+  background: $header-bg inline-image('tails-128x128.png') left bottom no-repeat;
   h1 {
+    padding-left: 115px;
     display: inline-block;
     margin: 0;
     a, a:visited, a:hover {
@@ -9,6 +10,7 @@ body > header {
     }
   }
   h2 {
+    padding-left: 115px;
     margin: .2em 0 0;
     @extend .sans;
     font-size: 1em;

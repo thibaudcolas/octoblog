@@ -2,7 +2,7 @@ $blockquote: $type-border !default;
 $sans: "Helvetica Neue", Arial, sans-serif !default;
 $serif: Georgia, Times, "Times New Roman", serif !default;
 $mono: Menlo, Monaco, "Andale Mono", "lucida console", "Courier New", monospace !default;
-$heading-font-family: "Georgia", "Helvetica Neue", Arial, sans-serif !default;
+$heading-font-family: "Helvetica Neue", Arial, sans-serif !default;
 $header-title-font-family: $heading-font-family !default;
 $header-subtitle-font-family: $heading-font-family !default;
 
@@ -66,6 +66,7 @@ h6, section h5, section section h4, section section section h3 {
 p, article blockquote, ul, ol { margin-bottom: 1.5em; }
 
 ul { list-style-type: disc;
+     list-style-position: inside;
   ul { list-style-type: circle; margin-bottom: 0px;
     ul { list-style-type: square; margin-bottom: 0px; }}}
 
