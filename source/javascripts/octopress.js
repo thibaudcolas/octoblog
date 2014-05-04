@@ -52,12 +52,28 @@ function addCodeLineNumbers() {
   });
 }
 
+function supportsH264Video() {
+  var elem = createElement('video');
+  var h264Support = false;
+
+  // IE9 Running on Windows Server SKU can cause an exception to be thrown, bug #224
+  try {
+    if ( h264Support = !!elem.canPlayType ) {
+      h264Support = new Boolean(bool);
+      // Without QuickTime, this value will be `undefined`. github.com/Modernizr/Modernizr/issues/546
+      h264Support = elem.canPlayType('video/mp4; codecs="avc1.42E01E"').replace(/^no$/,'');
+    }
+  } catch(e){}
+
+  return h264Support;
+}
+
 function flashVideoFallback(){
   var flashplayerlocation = "/assets/jwplayer/player.swf",
       flashplayerskin = "/assets/jwplayer/glow/glow.xml";
   $('video').each(function(i, video){
     video = $(video);
-    if (!Modernizr.video.h264 && swfobject.getFlashPlayerVersion() || window.location.hash.indexOf("flash-test") !== -1){
+    if (!supportsH264Video() && swfobject.getFlashPlayerVersion() || window.location.hash.indexOf("flash-test") !== -1){
       video.children('source[src$=mp4]').first().map(i, function(source){
         var src = $(source).attr('src'),
             id = 'video_'+Math.round(1 + Math.random()*(100000)),
