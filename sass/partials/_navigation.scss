@@ -15,7 +15,7 @@ body > nav {
       font-size: .85em;
       font-family: $sans;
       line-height: 1.1em;
-      width: 95%;
+      width: 100%;
       @include border-radius(.5em);
       @include background-clip(padding-box);
       @include box-shadow(lighten($nav-bg, 2) 0 1px);
@@ -76,7 +76,7 @@ body > nav {
       padding-left: .8em;
       width: $sidebar-width-medium - $pad-medium*2 - $sidebar-pad-medium + 20px;
       .search {
-        width: 93%;
+        width: 100%;
         font-size: .95em;
         line-height: 1.2em;
       }
