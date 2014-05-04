@@ -97,23 +97,3 @@ body > nav {
     }
   }
 }
-.no-placeholder {
-  body > nav .search {
-    background: lighten($nav-bg, 15) image-url('search.png') .3em .25em no-repeat;
-    text-indent: 1.3em;
-  }
-}
-@mixin mask-subscription-nav($feed: 'rss.png'){
-  position: relative; top: 0px;
-  text-indent: -999999em;
-  background-color: $nav-border-right;
-  border: 0;
-  padding: 0;
-  &,&:after { @include mask-image($feed); }
-  &:after {
-    content: "";
-    position: absolute; top: -1px; left: 0;
-    background-color: lighten($nav-color, 25);
-  }
-  &:hover:after { background-color: lighten($nav-color, 20); }
-}
