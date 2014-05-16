@@ -26,7 +26,7 @@ En venant au Mix-IT, évènement à forte tonalité Java, j'espérais en apprend
 
 Petite piqûre de rappel des bonnes et mauvaises pratiques lors du refactoring, en particulier pour les applications utilisant des frameworks JavaScript. De bons conseils en barre. Garann Means participe également au podcast [Fripfrap](http://fripfrap.io/) qui vaut le détour.
 
-[La culture du programmeur](https://speakerdeck.com/jeanlaurent/la-culture-du-programmeur) de Jean-Laurent De Morlhon
+## [La culture du programmeur](https://speakerdeck.com/jeanlaurent/la-culture-du-programmeur) de Jean-Laurent De Morlhon
 
 J'ai beaucoup aimé le message mais moins la forme. Ce talk m'a cependant rappelé l'existence du Joel Test : une série de douze questions toutes simples pour juger du niveau de qualité d'une équipe de développement logiciel.
 
