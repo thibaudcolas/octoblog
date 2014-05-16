@@ -10,18 +10,27 @@ C'était ma première participation au [Mix-IT](http://www.mix-it.fr), et ça va
  
 <!-- more -->
  
-[Des applications réactives avec Spring, AngularDart et Websocket](https://speakerdeck.com/sdeleuze/reactive-applications-with-spring-angulardart-and-websocket) par Sébastien Deleuze.
+## [Des applications réactives avec Spring, AngularDart et Websocket](https://speakerdeck.com/sdeleuze/reactive-applications-with-spring-angulardart-and-websocket)
 
-[Programming Diversity](http://www.ashedryden.com/mixit-programming-diversity) de Ashe Dryden 
+Sébastien Deleuze nous a fait découvrir [OpenSnap](https://github.com/sdeleuze/opensnap), un clône HTML5 de Snapchat utilisant une stack technologique impressionnante : HTML5, Bootstrap, Dart, AngularDart, WebSockets, SockJS, Java8, Spring Boot, Spring Framework 4, Tomcat 8, MongoDB, RabbitMQ. Cette liste parle pour elle-même, le code vaut le coup d'être lu.
 
-[How to rewrite your JavaScript app ten times](https://speakerdeck.com/garann/how-to-rewrite-your-js-app-at-least-10-times) de Garann Means
+## [Programming Diversity](http://www.ashedryden.com/mixit-programming-diversity) de Ashe Dryden
 
-[Des petits pas vers le Continuous Delivery]() de Dimitri Baeli et Arnaud Pflieger
+Une très bonne présentation, qui rappelle les bienfaits de la diversité en entreprise. On y apprend par exemple qu'une femme a une chance sur deux de quitter l'informatique après 10 ans de carrière. La raison : le harcèlement.
 
-[La culture du programmeur]() de Jean-Laurent De Morlhon
+## [Open-sourcing http://spring.io](https://spring.io/blog/2014/03/27/project-sagan-open-sourcing-spring-io)
 
+En venant au Mix-IT, évènement à forte tonalité Java, j'espérais en apprendre plus sur Spring. Cette présentation ne m'a pas déçu, bien au contraire : [Brian Clozel](http://www.twitter.com/brianclozel) y présente le processus d'ouverture des sources du site http://spring.io. Bien plus qu'une documentation, ils ont pensé leur projet comme une application de référence pour Spring.io. Les sources sont bien évidemment [sur GitHub](https://github.com/spring-io/sagan).
 
-[The Joel Test](http://www.joelonsoftware.com/articles/fog0000000043.html)
+## [How to rewrite your JavaScript app ten times](https://speakerdeck.com/garann/how-to-rewrite-your-js-app-at-least-10-times) par Garann Means
+
+Petite piqûre de rappel des bonnes et mauvaises pratiques lors du refactoring, en particulier pour les applications utilisant des frameworks JavaScript. De bons conseils en barre. Garann Means participe également au podcast [Fripfrap](http://fripfrap.io/) qui vaut le détour.
+
+[La culture du programmeur](https://speakerdeck.com/jeanlaurent/la-culture-du-programmeur) de Jean-Laurent De Morlhon
+
+J'ai beaucoup aimé le message mais moins la forme. Ce talk m'a cependant rappelé l'existence du Joel Test : une série de douze questions toutes simples pour juger du niveau de qualité d'une équipe de développement logiciel.
+
+Version originale : [The Joel Test](http://www.joelonsoftware.com/articles/fog0000000043.html)
 
     1.  Do you use source control?
     2.  Can you make a build in one step?
@@ -36,7 +45,7 @@ C'était ma première participation au [Mix-IT](http://www.mix-it.fr), et ça va
     11. Do new candidates write code during their interview?
     12. Do you do hallway usability testing?
 
-[Version française](http://french.joelonsoftware.com/Articles/TheJoelTest.html), avec résultat pour la WebFactory :
+[Version française](http://french.joelonsoftware.com/Articles/TheJoelTest.html), avec résultat pour la WebFactory de CGI Montpellier :
 
     1.  Utilisez-vous un système de gestion de code source ?              = [X]
     2.  Pouvez-vous faire un build en une seule étape ?                   = [X]
@@ -51,4 +60,6 @@ C'était ma première participation au [Mix-IT](http://www.mix-it.fr), et ça va
     11. Les candidats écrivent-ils du code en entretien d'embauche ?      = [ ]
     12. Faites-vous des tests d'utilisabilité de couloir ?                = [ ]
 
--> 5/12, peut mieux faire. Quelques [pistes](https://skeptics.stackexchange.com/questions/1700/do-bigger-or-more-monitors-increase-productivity) [simples](https://en.wikipedia.org/wiki/Test-driven_development) pour [s'améliorer](http://blog.codinghorror.com/investing-in-a-quality-programming-chair/)...
+-> 5/12, peut mieux faire. Cela pourrait être pire mais voici tout de même quelques [pistes](https://skeptics.stackexchange.com/questions/1700/do-bigger-or-more-monitors-increase-productivity) [simples](https://en.wikipedia.org/wiki/Test-driven_development) pour [s'améliorer](http://blog.codinghorror.com/investing-in-a-quality-programming-chair/)...
+
+Bref, très bonne conférence en somme ! J'y ai fait le plein de motivation, ai été ravi de pouvoir y rencontrer d'autres passionnés et des collègues de CGI d'autres régions. Et puis, présenter un lightning talk, c'était quand même royal. À dans un an Mix-IT.
