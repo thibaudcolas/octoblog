@@ -23,9 +23,10 @@ Here is a list of upcoming events in southern France (/ Barcelona) around Montpe
 - 23-25/05 : [Startup Weekend - Montpellier](http://montpellier.startupweekend.org/)
 - 24-25/05 : [Drupal Camp - Montpellier](http://soleil2014.drupalcamp.fr/)
 
-# June
+## June
 
 - 05/06 : [Connec'Sud](http://www.connecsud.com/)
+— 17/06 : [CMSDay - Paris](http://www.cmsday.fr/)
 
 ## July
 
