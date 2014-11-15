@@ -10,9 +10,9 @@ Here it is after a lot of commits: the new version of my personal website, [thib
 
 <!-- more -->
 
-Here are the most important change with the reasoning behind them:
+Here are the most important changes with the reasoning behind them:
 
-- Now in english! — mandatory because I'm relocating to New Zealand.
+- Now in English! — mandatory because I'm relocating to New Zealand.
 - Domain name changed to [thib.me](https://thib.me) — shorter, better, stronger.
 - New somewhat flat design — just looks nice?
 - New content focused on my skills and projects — was desperatelly needed.
