@@ -20,10 +20,10 @@ In hindsight, I'd have only left my previous job and moved to New Zealand sooner
 
 I'd love to expand on this but it feels like I'm just bragging. If you're thinking about moving to NZ, definitely get in touch: [@ThibWeb](https://twitter.com/ThibWeb).
 
-So why Springload then? Well, at first because they were sponsporing New Zealand's biggest conference ([Webstock](http://www.webstock.org.nz/)) and because they had many OSS projects on [GitHub](http://github.com/springload/. Because their work looked good, and I could definitely relate to what they said about their culture on their website.
+So why Springload then? Well, at first because they were sponsporing New Zealand's biggest conference ([Webstock](http://www.webstock.org.nz/)) and because they had many OSS projects on [GitHub](http://github.com/springload/). Because their work looked good, and I could definitely relate to what they said about their culture on their website.
 
 Then because my first interview with the founder and our Front-end director went very well. The secund too. I was still in Auckland at the time, so they even flew me down to Wellington!
 
-And that's what got me sold in the end. I got to meet with the people I'd end up working with every day, I got to see that they had a great office and that they all seemed very happy working here. I got to see that it was an amazing place to work at!
+And that's what got me sold in the end: I got to meet with the people I'd end up working with every day, I got to see that they had a great office and that they all seemed very happy working here. I got to see that it was an amazing place to work at!
 
 So we just took our bags again, moved a few hundred kilometers again, and here I am at Springload. Yay!
