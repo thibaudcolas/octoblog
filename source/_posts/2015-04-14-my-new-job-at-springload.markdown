@@ -8,7 +8,7 @@ categories: [Personal, Interview, Careers]
 
 I just got a new job! I am now a Senior Front-End Developer at [Springload](http://springload.co.nz/), Wellington, New Zealand. This is amazing!
 
-After two years working in the IT & BPS consulting field for two years at CGI, I was fed up with client work and I wanted something new. New Zealand was the right place to look for a job. Springload is the right place to work at. Wellington is a nice place to live in! I got it all!
+After two years working in the IT & BPS consulting field at CGI, I was fed up with client work and I wanted something new. New Zealand was the right place to look for a job. Springload is the right place to work at. Wellington is a nice place to live in! I got it all!
 
 <!-- more -->
 
