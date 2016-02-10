@@ -19,3 +19,10 @@ bundle install
 rake preview
 rake generate
 ```
+
+## Deployment
+
+```sh
+mkdir _deploy
+rake deploy
+```
