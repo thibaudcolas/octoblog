@@ -18,6 +18,7 @@ bundle install
 ```sh
 rake preview
 rake generate
+rake new_post\["Post title"\]
 ```
 
 ## Deployment
