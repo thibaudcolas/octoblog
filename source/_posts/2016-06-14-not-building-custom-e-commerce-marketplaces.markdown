@@ -6,7 +6,9 @@ comments: true
 categories: [Commerce, Community, Startup]
 ---
 
-I think it's now the third time I've had to think about the best approach to create new e-commerce marketplaces. __TL;DR;__ This is hard, and there is no go-to marketplace as a service yet. But there are alternative approaches.
+I think it's now the third time I've had to think about the best approach to create new e-commerce marketplaces.
+
+__TL;DR;__ This is hard, and there is no go-to marketplace as a service yet. But there are alternative approaches.
 
 <!-- more -->
 
@@ -22,7 +24,7 @@ In general, I would try to challenge the conclusion that you __"need to create a
 
 No need to build user profile features (Instagram account instead) and product pages (Instagram "posts"). You'd just need to build enough product discovery (hashtags!) and transaction record features on top of Instagram so that your users can successfully browse items and complete transactions. I've seen many success stories of shops doing their business only on free Instagram and Messenger/WhatsApp accounts. Get people advertising their items there, track point counts with your custom code, and get people doing transactions.
 
-# The "custom <web framework X>" approach
+# The "custom" approach with a web framework
 
 Have a good look through reusable, semi off the shelf solutions like this matrix of Django-based e-commerce modules: https://www.djangopackages.com/grids/g/ecommerce/. It's important to note that most of the building blocks out there are meant to create e-commerce sites for shops or retailers, not full-fledged platforms/marketplaces with transactions between different users.
 
