@@ -3,12 +3,12 @@
 # ----------------------- #
 
 url: http://blog.thib.me
-title: ThibWeb's Blog
-subtitle: Notes, Thoughts and Open-source software
+title: Thibaud’s blog
+subtitle: Notes, thoughts, and open-source software
 author: Thibaud Colas
 authorsite: http://thib.me
 # simple_search: http://google.com/search
-description: Logbook of a Software Engineer navigating Web Development
+description: Logbook of a software engineer navigating web development
 keywords: thibaud colas thibweb blog software engineer web developer javascript
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
