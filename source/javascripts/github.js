@@ -12,21 +12,31 @@ var github = (function(){
   }
   return {
     showRepos: function(options){
+      var elt = $(options.target);
+      var user = elt.attr('data-user');
+      var count = parseInt(elt.attr('data-count'), 10);
+      console.log(user, count);
+
       $.ajax({
-          url: "https://api.github.com/users/"+options.user+"/repos?sort=pushed&callback=?"
+          url: "https://api.github.com/users/"+user+"/repos?sort=pushed&callback=?"
         , dataType: 'jsonp'
         , error: function (err) { $(options.target + ' li.loading').addClass('error').text("Error loading feed"); }
         , success: function(data) {
           var repos = [];
           if (!data || !data.data) { return; }
           for (var i = 0; i < data.data.length; i++) {
-            if (options.skip_forks && data.data[i].fork) { continue; }
+            // Skip forks.
+            if (data.data[i].fork) { continue; }
             repos.push(data.data[i]);
           }
-          if (options.count) { repos.splice(options.count); }
+          if (count) { repos.splice(count); }
           render(options.target, repos);
         }
       });
     }
   };
 })();
+
+github.showRepos({
+    target: '#gh_repos'
+});
