@@ -18,4 +18,4 @@ En trois quarts d'heure, j'évoque :
 
 J'ai également mentionné l'excellent [NodeSchool](http://nodeschool.io), une collection de tutoriels gamifiés qui représente selon moi la meilleure façon de découvrir Node.
 
-La présentation est bien évidemment disponible [sur GitHub](https://github.com/ThibWeb/talks) et sur mon site personnel [ThibWeb's Talks](http://talks.thib.me).
+La présentation est bien évidemment disponible [sur GitHub](https://github.com/thibaudcolas/talks) et sur mon site personnel [thibaudcolas's Talks](http://talks.thib.me).

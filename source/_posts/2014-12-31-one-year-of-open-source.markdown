@@ -18,10 +18,10 @@ In 2014:
 - My [main website](https://thib.me) was rebuilt from scratch.
 - I did a __lot__ of side-projects:
     + [Zori](https://github.com/FlipFlopWeekly/zori)
-    + [JS1K](https://github.com/ThibWeb/js1k-2014)
+    + [JS1K](https://github.com/thibaudcolas/js1k-2014)
     + Something cool in Python: [When will it be done?](http://whenwillitbedone.trgdy.com/)
     + [JS13K](https://github.com/FatBoyCrew/elements-shmup)
-    + A theme for jsonresume.org: [Eloquent](https://github.com/ThibWeb/jsonresume-theme-eloquent)
+    + A theme for jsonresume.org: [Eloquent](https://github.com/thibaudcolas/jsonresume-theme-eloquent)
 
 Here's what my GitHub scorecard looks like:
 

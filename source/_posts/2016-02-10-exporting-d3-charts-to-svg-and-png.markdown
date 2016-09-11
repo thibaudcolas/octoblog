@@ -21,8 +21,8 @@ While none of those steps taken individually are hard to build, their combinatio
 
 This is where [Electron](http://electron.atom.io/) comes into play. Electron is a wrapper around [Chromium's rendering stack](http://www.chromium.org/developers/content-module) (the Blink rendering engine, V8, and other important goodies). We can use this semi-headless browser to render our charts and export them!
 
-I ended up writing a library that does just that: [https://github.com/ThibWeb/export-svg-chart](https://github.com/ThibWeb/export-svg-chart). I don't like reinventing the wheel so this is just an elegant wrapper around the tools mentioned above, with a very straightforward API.
+I ended up writing a library that does just that: [https://github.com/thibaudcolas/export-svg-chart](https://github.com/thibaudcolas/export-svg-chart). I don't like reinventing the wheel so this is just an elegant wrapper around the tools mentioned above, with a very straightforward API.
 
 If you want to use this library, you'll need to point it to a page where to extract your chart from – you can make this page use custom "export / print" styles, or just use the same rendering as the one of your default dynamic chart.
 
-There's a more technical write-up of my findings on GitHub here: https://github.com/ThibWeb/chart-export-example. I also tried to make this work in [jsdom](https://github.com/tmpvar/jsdom), but didn't go with that solution since it came with too many trade-offs.
+There's a more technical write-up of my findings on GitHub here: https://github.com/thibaudcolas/chart-export-example. I also tried to make this work in [jsdom](https://github.com/tmpvar/jsdom), but didn't go with that solution since it came with too many trade-offs.

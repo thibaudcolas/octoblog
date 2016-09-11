@@ -18,7 +18,7 @@ In hindsight, I'd have only left my previous job and moved to New Zealand sooner
 - IT salaries are high! The average IT salary for a Java/.NET developer with 2 years of experience is around NZD 75'000$, which is 50'000€ at the current exchange rate. My own salary nearly doubled: I'd have never dreamt of having such a raise by just finding the right job in the right place!
 - The cost of life is quite low. It is definitely lower than in France.
 
-I'd love to expand on this but it feels like I'm just bragging. If you're thinking about moving to NZ, definitely get in touch: [@ThibWeb](https://twitter.com/ThibWeb).
+I'd love to expand on this but it feels like I'm just bragging. If you're thinking about moving to NZ, definitely get in touch: [@thibaudcolas](https://twitter.com/thibaudcolas).
 
 So why Springload then? Well, at first because they were sponsporing New Zealand's biggest conference ([Webstock](http://www.webstock.org.nz/)) and because they had many OSS projects on [GitHub](http://github.com/springload/). Because their work looked good, and I could definitely relate to what they said about their culture on their website.
 

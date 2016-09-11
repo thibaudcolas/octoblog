@@ -4,7 +4,7 @@
 /* TEAM */
   Webmaster: Thibaud Colas
   Site: http://thib.me
-  Twitter: @ThibWeb
+  Twitter: @thibaud_colas
 
 /* THANKS */
   Name: Guillaume Kulakowski

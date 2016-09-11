@@ -6,13 +6,13 @@ comments: true
 categories: [Python, Koans, Code]
 ---
 
-I recently discovered the concept of programming Koans: series of TDD-style tutorials to learn parts of a programming language. I've been willing to get better at Python for a while and started doing Greg Malcolm's [Python Koans](https://github.com/gregmalcolm/python_koans). After a few months of practice, I [completed all of them](https://github.com/ThibWeb/koans-playground/tree/master/python/python2) and thought it'd be cool to share my take on the extra credit task.
+I recently discovered the concept of programming Koans: series of TDD-style tutorials to learn parts of a programming language. I've been willing to get better at Python for a while and started doing Greg Malcolm's [Python Koans](https://github.com/gregmalcolm/python_koans). After a few months of practice, I [completed all of them](https://github.com/thibaudcolas/koans-playground/tree/master/python/python2) and thought it'd be cool to share my take on the extra credit task.
 
 <!-- more -->
 
-This task is more complicated than all of the other koans: it is a free-form programming exercice, where you both write tests and implementation for a given problem: the Greed Game and its [Greed Rules](https://github.com/ThibWeb/koans-playground/blob/master/python/python2/koans/GREEDS_RULES.txt). It tests your ability to write proper idiomatic (_Pythonic_) code, and to be thorough when testing it.
+This task is more complicated than all of the other koans: it is a free-form programming exercice, where you both write tests and implementation for a given problem: the Greed Game and its [Greed Rules](https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/GREEDS_RULES.txt). It tests your ability to write proper idiomatic (_Pythonic_) code, and to be thorough when testing it.
 
-``` python My take on about_extra_credit.py's Greed Game - Implementation https://github.com/ThibWeb/koans-playground/blob/master/python/python2/koans/about_extra_credit.py Source on GitHub
+``` python My take on about_extra_credit.py's Greed Game - Implementation https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/about_extra_credit.py Source on GitHub
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -237,7 +237,7 @@ class UI(object):
         print UI.ITEMS['EN_LONG']['WINNER'].format(winner.name, winner.points)
 ```
 
-``` python My take on about_extra_credit.py's Greed Game - Test cases https://github.com/ThibWeb/koans-playground/blob/master/python/python2/koans/about_extra_credit.py Source on GitHub
+``` python My take on about_extra_credit.py's Greed Game - Test cases https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/about_extra_credit.py Source on GitHub
 class AboutExtraCredit(Koan):
 
     def test_extra_credit_task(self):

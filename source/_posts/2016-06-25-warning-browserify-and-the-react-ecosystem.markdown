@@ -14,7 +14,7 @@ As it turns out, React's practice of having different code for "development mode
 
 Not all projects mention this, and more importantly not all projects warn you if you don't. The solution? Configure your build step to remove those development aids in _the entire bundle_, and not just your own code.
 
-More info at https://github.com/ThibWeb/react-router-browserify-build/.
+More info at https://github.com/thibaudcolas/react-router-browserify-build/.
 
 Other related links for future reference:
 

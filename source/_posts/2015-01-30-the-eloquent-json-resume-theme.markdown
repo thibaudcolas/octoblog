@@ -12,7 +12,7 @@ I just released something on npm! Actually, my resume theme ([Eloquent](https://
 
 Here's what it looks like:
 
-![Eloquent screenshot](https://raw.githubusercontent.com/ThibWeb/jsonresume-theme-eloquent/master/raw/theme-screenshot.png)
+![Eloquent screenshot](https://raw.githubusercontent.com/thibaudcolas/jsonresume-theme-eloquent/master/raw/theme-screenshot.png)
 
 I created this [JSON Resume](https://jsonresume.org/) theme when I was looking for a new job. My aim was to make sure that I'd be able to deliver a full-lenght version of my resume if needed. I started by [retrieving my LinkedIn data](https://github.com/JMPerez/linkedin-to-json-resume), and used the Elegant theme.
 
