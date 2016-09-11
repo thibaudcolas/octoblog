@@ -19,13 +19,13 @@ I got to go to the [Open Source // Open Society](http://www.opensourceopensociet
 ## First day: talk by [@benbalter](https://twitter.com/benbalter)
 
 <blockquote class="twitter-tweet" lang="en">
-    <p>The plague of DC: too many lawyers. <a href="https://twitter.com/hashtag/OSOS?src=hash">#OSOS</a> is on :) <a href="http://t.co/MCTkwLl5eZ">pic.twitter.com/MCTkwLl5eZ</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaudcolas/status/588453328650051584">April 15, 2015</a>
+    <p>The plague of DC: too many lawyers. <a href="https://twitter.com/hashtag/OSOS?src=hash">#OSOS</a> is on :) <a href="http://t.co/MCTkwLl5eZ">pic.twitter.com/MCTkwLl5eZ</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaud_colas/status/588453328650051584">April 15, 2015</a>
 </blockquote>
 
 ## Secund day: Yay!
 
 <blockquote class="twitter-tweet" lang="en">
-    <p>It&#39;d be great for <a href="https://twitter.com/WikiNewZealand">@WikiNewZealand</a> to be open sourced! <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> cc <a href="https://twitter.com/GracefulLillian">@GracefulLillian</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaudcolas/status/588461590673891328">April 15, 2015</a>
+    <p>It&#39;d be great for <a href="https://twitter.com/WikiNewZealand">@WikiNewZealand</a> to be open sourced! <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> cc <a href="https://twitter.com/GracefulLillian">@GracefulLillian</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaud_colas/status/588461590673891328">April 15, 2015</a>
 </blockquote>
 
 <blockquote class="twitter-tweet" lang="en">
@@ -37,18 +37,18 @@ I got to go to the [Open Source // Open Society](http://www.opensourceopensociet
 </blockquote>
 
 <blockquote class="twitter-tweet" lang="en">
-    <p>&quot;Ship the 0.1 not the 1.0&quot; Makes so much sense to open the work from the start, not when it&#39;s over! <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaudcolas/status/588855095137206272">April 17, 2015</a>
+    <p>&quot;Ship the 0.1 not the 1.0&quot; Makes so much sense to open the work from the start, not when it&#39;s over! <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaud_colas/status/588855095137206272">April 17, 2015</a>
 </blockquote>
 
 <blockquote class="twitter-tweet" lang="en">
-    <p>Data usability &amp; use — is the NZ govt doing Linked Open Data? <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> <a href="https://twitter.com/hashtag/SemWeb?src=hash">#SemWeb</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaudcolas/status/588859064815202304">April 17, 2015</a>
+    <p>Data usability &amp; use — is the NZ govt doing Linked Open Data? <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> <a href="https://twitter.com/hashtag/SemWeb?src=hash">#SemWeb</a></p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaud_colas/status/588859064815202304">April 17, 2015</a>
 </blockquote>
 
 <blockquote class="twitter-tweet" lang="en">
     <p>We got great feedback about how to make our consultation listing better - thank you to all who came :) ^AW <a href="http://t.co/TJxA7nfBVX">http://t.co/TJxA7nfBVX</a> <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a></p>&mdash; Govt.nz Team (@govtnz) <a href="https://twitter.com/govtnz/status/588890374547972097">April 17, 2015</a>
 </blockquote>
 <blockquote class="twitter-tweet" lang="en">
-    <p>My key takeaway from <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a>: the open source community should be more inclusive. OSS doesn&#39;t have to be scary nor nerdy!</p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaudcolas/status/588921514075955201">April 17, 2015</a>
+    <p>My key takeaway from <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a>: the open source community should be more inclusive. OSS doesn&#39;t have to be scary nor nerdy!</p>&mdash; Thibaud Colas (@thibaudcolas) <a href="https://twitter.com/thibaud_colas/status/588921514075955201">April 17, 2015</a>
 </blockquote>
 
 <blockquote class="twitter-tweet" lang="en">
