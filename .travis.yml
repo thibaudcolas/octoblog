@@ -2,7 +2,7 @@ language: ruby
 rvm:
 - 2.2.3
 install:
-- gem install
+- bundle install
 script:
 - bundle exec rake generate
 deploy:
