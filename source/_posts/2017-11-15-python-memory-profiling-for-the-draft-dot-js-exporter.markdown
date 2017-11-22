@@ -22,9 +22,7 @@ To me, the golden standard for performance profiling is the [Chrome DevTools](ht
 
 [![Screenshot of the Draftail demo page load profiling](/images/devtools-draftail-load-profiling.png)](/images/devtools-draftail-load-profiling.png)
 
-> Can you spot for how long the toolbar looks broken because the icon font isn’t loaded yet?
->
-> 300ms.
+_Can you spot for how long the toolbar looks broken because the icon font isn’t loaded yet?_
 
 Performance tooling in the Python ecosystem isn’t as simple to use. Lucky for us, the workload of the Draft.js exporter is much simpler: Draft.js content in, HTML out. We can focus on two metrics:
 
