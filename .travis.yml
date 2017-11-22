@@ -8,7 +8,7 @@ script:
 deploy:
   provider: pages
   skip_cleanup: true
-  local_dir: examples
+  local_dir: public
   github_token: "$GITHUB_TOKEN"
   on:
     branch: master
