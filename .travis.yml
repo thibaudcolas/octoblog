@@ -1,0 +1,19 @@
+language: ruby
+rvm:
+- 2.2.3
+install:
+- gem install
+script:
+- bundle exec rake generate
+deploy:
+  provider: pages
+  skip_cleanup: true
+  local_dir: examples
+  github_token: "$GITHUB_TOKEN"
+  on:
+    branch: master
+notifications:
+  email: false
+env:
+  global:
+    secure: aa+RKpnqLDf7gxobxHhzG9y/HrcKNF0QZzVXsmxcSumKwztsPmNsYVvL3WvVW3xyAafjyRSWOsJSREDWCUBVPjM4ariwNc6LNIVRRnVE73dhfR0XM9Bib7HQ816iGN0Qe6Gr2ypbFAS5ytY6SH2ElglhSCXT3OaWDirh30+uygY=

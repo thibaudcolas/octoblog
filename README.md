@@ -1,23 +1,26 @@
-[blog.thib.me](http://blog.thib.me)
-========
+# [blog.thib.me](http://blog.thib.me) [![Build Status](https://travis-ci.org/thibaudcolas/octoblog.svg?branch=master)](https://travis-ci.org/thibaudcolas/octoblog)
 
-> Notes, Thoughts and Open-source software
-
-My personal octoblog. Content available under [https://creativecommons.org/publicdomain/zero/1.0/](CC0), powered by [http://octopress.org](Octopress), hosted on [http://pages.github.com/](GitHub Pages).
+> My personal blog. Notes, thoughts and open-source software.
 
 ## Installation
 
-> Seems to be compatible with Ruby `2.2.3` and Bundler `1.10.6`.
+> Requires `rbenv`.
 
 ```sh
+# Install the right Ruby version, and Bundler.
+rbenv install 2.2.3
+rbenv local 2.2.3
+gem install bundler
+
+# Install the blog's dependency.
 bundle install
 ```
 
 ## Usage
 
 ```sh
-rake preview
-rake generate
+bundle exec rake preview
+bundle exec rake generate
 rake new_post\["Post title"\]
 ```
 
@@ -27,3 +30,7 @@ rake new_post\["Post title"\]
 mkdir _deploy
 rake deploy
 ```
+
+## Credits
+
+Content available under [CC0](https://creativecommons.org/publicdomain/zero/1.0/), powered by [Octopress](http://octopress.org), hosted on [GitHub Pages](http://pages.github.com/).
