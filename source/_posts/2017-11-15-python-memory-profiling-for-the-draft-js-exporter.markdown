@@ -4,6 +4,8 @@ title: "Python memory profiling and speed benchmarks for the Draft.js exporter"
 date: 2017-11-15 15:24:38 +0200
 comments: true
 categories: [Wagtail, Tools, Python, Draft.js]
+seo_image: /images/exporter-speed-per-version.png
+seo_image_alt: Bar chart of Draft.js exporter speed per version, for each engine, showing an increase from version to version, with the right-most "string" engine being the fastest.
 ---
 
 Ever heard of [Draft.js](https://draftjs.org/)? We are rebuilding [Wagtail](https://github.com/wagtail/wagtail)’s rich text content management using this rich text editor framework from Facebook. Apart from a new editor, [Draftail](https://github.com/springload/draftail), we also needed an exporter to convert Draft.js content to HTML: the aptly-named [draftjs_exporter](https://github.com/springload/draftjs_exporter).
@@ -151,7 +153,7 @@ This quickly led to a **20-30x** (!) speedup, from 500 to 10ms for the sample "b
 
 With the performance tooling in place, we were then able to check that new features added to the exporter would not degrade its performance, and to make [incremental improvements](https://github.com/springload/draftjs_exporter/pull/58) by changing its content parsing logic. We made good progress from version to version, all the while adding more functionality:
 
-![Draft.js exporter speed per version, for each engine](/images/exporter-speed-per-version.png)
+![Bar chart of Draft.js exporter speed per version, for each engine, showing an increase from version to version, with the right-most "string" engine being the fastest.](/images/exporter-speed-per-version.png)
 
 > Exporter speed per version, for each HTML generation engine.
 
