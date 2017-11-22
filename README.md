@@ -21,14 +21,16 @@ bundle install
 ```sh
 bundle exec rake preview
 bundle exec rake generate
-rake new_post\["Post title"\]
+bundle exec rake new_post\["Post title"\]
 ```
 
 ## Deployment
 
+[Travis](https://travis-ci.org/thibaudcolas/octoblog) is configured to deploy changes to `master` automatically. For manual deployments:
+
 ```sh
 mkdir _deploy
-rake deploy
+bundle exec rake deploy
 ```
 
 ## Credits
