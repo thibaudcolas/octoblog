@@ -6,16 +6,11 @@
   Site: http://thib.me
   Twitter: @thibaud_colas
 
-/* THANKS */
-  Name: Guillaume Kulakowski
-  Site: http://llaumgui.com
-  Twitter: @llaumgui
-
 /* SITE */
-  Last update 2014-03-09
+  Last update 2017-11-22
   Standards: HTML5, Sass
-  Components: Octopress, GitHub Pages
-  Software: Mac OS X, Sublime Text 2, Git
+  Components: Octopress, GitHub Pages, Travis
+  Software: macOS, Visual Studio Code, Git
 
 
 
