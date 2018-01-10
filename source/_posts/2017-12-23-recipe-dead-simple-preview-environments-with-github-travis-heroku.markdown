@@ -106,7 +106,7 @@ notifications:
 
 Important step – in the `requirements.txt` (or `base.txt`), install from the newly created branch based on the PR:
 
-```txt
+```sh
 Django==1.11.5
 django-dotenv==1.4.1
 
