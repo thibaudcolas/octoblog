@@ -8,30 +8,25 @@
 
 ```sh
 # Install the right Ruby version, and Bundler.
-rbenv install 2.2.3
-rbenv local 2.2.3
+rbenv install 2.4.2
+rbenv local 2.4.2
 gem install bundler
 
 # Install the blog's dependency.
+pip install pygments
 bundle install
 ```
 
 ## Usage
 
 ```sh
-bundle exec rake preview
-bundle exec rake generate
-bundle exec rake new_post\["Post title"\]
+bundle exec jekyll serve
+bundle exec jekyll build
 ```
 
 ## Deployment
 
 [Travis](https://travis-ci.org/thibaudcolas/octoblog) is configured to deploy changes to `master` automatically. For manual deployments:
-
-```sh
-mkdir _deploy
-bundle exec rake deploy
-```
 
 ## Credits
 
