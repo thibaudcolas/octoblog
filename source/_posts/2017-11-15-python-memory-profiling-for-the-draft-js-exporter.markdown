@@ -3,7 +3,7 @@ layout: post
 title: "Python memory profiling and speed benchmarks for the Draft.js exporter"
 date: 2017-11-15 15:24:38 +0200
 comments: true
-categories: [Wagtail, Tools, Python, Draft.js]
+categories: [Wagtail, Tools, Python, Draftjs]
 seo_image: /images/exporter-speed-per-version.png
 seo_image_alt: Bar chart of Draft.js exporter speed per version, for each engine, showing an increase from version to version, with the right-most "string" engine being the fastest.
 ---
