@@ -14,7 +14,7 @@ It was completely useless, as I decided to build a game in Bash, [RubeGoldBash](
 
 I started thinking about command-line games when I had a look at the [diversifiers](http://globalgamejam.org/news/introducing-ggj-2015-diversifiers) in the morning, particularly:
 
-> __Batch Job__: The game is a batch file from any operating system, using command line tools found in an out of the box installation.
+> **Batch Job**: The game is a batch file from any operating system, using command line tools found in an out of the box installation.
 
 Inspiring isn't it? I got my idea when we learned the theme: _What do we do now?_ See, UNIX tools are known to be easy to combine together. You start with a fixed toolset, but by combining them together you end up with endless possibilities. I would build a game about building [Rube Goldberg machines](https://en.wikipedia.org/wiki/Rube_Goldberg_machine) in bash, _RubeGoldBash_ (thanks for the name Chris).
 
@@ -29,23 +29,23 @@ The goal of the game is to create the most crazy, useless, enormous bash one-lin
 Here are a few examples which are worth a lot of points:
 
 ```bash
-		# Retrieve the weather for your location
-		curl -s ip.appspot.com | xargs -n 1 curl -s "freegeoip.net/csv/$1" | cut -d ',' -f '9 10' | sed 's/,/\&lon=/g' | xargs -n 1 echo "http://api.openweathermap.org/data/2.5/weather?mode=html&lat=$1" | sed 's/ //g' | xargs -n 1 curl -s $1 | tee weather.html
-		# Same request, with display to the prompt using lynx
-		curl -s ip.appspot.com | xargs -n 1 curl -s "freegeoip.net/csv/$1" | cut -d ',' -f '9 10' | sed 's/,/\&lon=/g' | xargs -n 1 echo "http://api.openweathermap.org/data/2.5/weather?mode=html&lat=$1" | sed 's/ //g' | xargs -n 1 curl -s $1 | lynx -stdin -dump
+# Retrieve the weather for your location
+curl -s ip.appspot.com | xargs -n 1 curl -s "freegeoip.net/csv/$1" | cut -d ',' -f '9 10' | sed 's/,/\&lon=/g' | xargs -n 1 echo "http://api.openweathermap.org/data/2.5/weather?mode=html&lat=$1" | sed 's/ //g' | xargs -n 1 curl -s $1 | tee weather.html
+# Same request, with display to the prompt using lynx
+curl -s ip.appspot.com | xargs -n 1 curl -s "freegeoip.net/csv/$1" | cut -d ',' -f '9 10' | sed 's/,/\&lon=/g' | xargs -n 1 echo "http://api.openweathermap.org/data/2.5/weather?mode=html&lat=$1" | sed 's/ //g' | xargs -n 1 curl -s $1 | lynx -stdin -dump
 
-		# Retrieve the answer to "When will it be done?" (scraping) and make a nice voice read it for you.
-		lynx --dump whenwillitbedone.trgdy.com | head -n 8 | tail -n 4 | tr "\\n" ' ' | cut -d '[' -f 1 | sed 's/   //g' | sed "s/'/ /g" | perl -pe 's/([^a-zA-Z0-9_.!~*()'\''-])/sprintf("%%%02X", ord($1))/ge' | xargs -n 1 echo "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$1" | sed 's/ //g' | xargs -n 1 curl -s "$1" > whenwillitbedone.mp3
-		# File can be read with
-		afplay whenwillitbedone.mp3
+# Retrieve the answer to "When will it be done?" (scraping) and make a nice voice read it for you.
+lynx --dump whenwillitbedone.trgdy.com | head -n 8 | tail -n 4 | tr "\\n" ' ' | cut -d '[' -f 1 | sed 's/   //g' | sed "s/'/ /g" | perl -pe 's/([^a-zA-Z0-9_.!~*()'\''-])/sprintf("%%%02X", ord($1))/ge' | xargs -n 1 echo "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$1" | sed 's/ //g' | xargs -n 1 curl -s "$1" > whenwillitbedone.mp3
+# File can be read with
+afplay whenwillitbedone.mp3
 
-		# Count the number of folders in the current working directory.
-		ls -l | cut -c 1 | grep d | wc -l
+# Count the number of folders in the current working directory.
+ls -l | cut -c 1 | grep d | wc -l
 
-		# Find the longest name
-		cat /usr/share/dict/propernames | grep 'S' | awk '{print length($1), $1}' | sort -n | tail -n 1 | cut -d ' ' -f 2
-		# And spell it
-		cat /usr/share/dict/propernames | grep 'S' | awk '{print length($1), $1}' | sort -n | tail -n 1 | cut -d ' ' -f 2 | say
+# Find the longest name
+cat /usr/share/dict/propernames | grep 'S' | awk '{print length($1), $1}' | sort -n | tail -n 1 | cut -d ' ' -f 2
+# And spell it
+cat /usr/share/dict/propernames | grep 'S' | awk '{print length($1), $1}' | sort -n | tail -n 1 | cut -d ' ' -f 2 | say
 ```
 
 You can then submit your score by using the `rubeshare` command:

@@ -12,7 +12,9 @@ I recently discovered the concept of programming Koans: series of TDD-style tuto
 
 This task is more complicated than all of the other koans: it is a free-form programming exercice, where you both write tests and implementation for a given problem: the Greed Game and its [Greed Rules](https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/GREEDS_RULES.txt). It tests your ability to write proper idiomatic (_Pythonic_) code, and to be thorough when testing it.
 
-``` python My take on about_extra_credit.py's Greed Game - Implementation https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/about_extra_credit.py Source on GitHub
+My take on about_extra_credit.py's Greed Game - Implementation https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/about_extra_credit.py
+
+```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -237,7 +239,9 @@ class UI(object):
         print UI.ITEMS['EN_LONG']['WINNER'].format(winner.name, winner.points)
 ```
 
-``` python My take on about_extra_credit.py's Greed Game - Test cases https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/about_extra_credit.py Source on GitHub
+My take on about_extra_credit.py's Greed Game - Test cases https://github.com/thibaudcolas/koans-playground/blob/master/python/python2/koans/about_extra_credit.py
+
+```python
 class AboutExtraCredit(Koan):
 
     def test_extra_credit_task(self):
@@ -368,8 +372,8 @@ class AboutExtraCredit(Koan):
 
 A few takeaways:
 
-- I decided to code the placer choice (keep rolling dices for a higher score or stop and keep a lower one) as a very simple rules-based AI. As the point is to use TDD as much as possible, it makes no sense to create a manual process / UI that'll need to receive input on each test case. Automating input on such an interface would be the same as implementing those rules.
-- When doing TDD, it is important to remind ourselves of the red-green-refactor cycle. Refactoring should be frequent to keep the routines manageable as more and more rules are added.
-- Adding lots of comments for each rule being implemented is a good way to keep track of what should be done: comments need to express the intent, not the implementation.
+* I decided to code the placer choice (keep rolling dices for a higher score or stop and keep a lower one) as a very simple rules-based AI. As the point is to use TDD as much as possible, it makes no sense to create a manual process / UI that'll need to receive input on each test case. Automating input on such an interface would be the same as implementing those rules.
+* When doing TDD, it is important to remind ourselves of the red-green-refactor cycle. Refactoring should be frequent to keep the routines manageable as more and more rules are added.
+* Adding lots of comments for each rule being implemented is a good way to keep track of what should be done: comments need to express the intent, not the implementation.
 
 Now on to a more Web-related Python project!
