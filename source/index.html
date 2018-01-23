@@ -5,7 +5,7 @@ layout: default
 <div class="blog-index">
   {% assign index = true %}
   {% for post in paginator.posts %}
-  {% assign content = post.content %}
+  {% assign content = post.excerpt %}
     <article>
       {% include article.html %}
     </article>
@@ -21,9 +21,6 @@ layout: default
   </div>
 </div>
 <aside class="sidebar">
-  {% if site.blog_index_asides.size %}
-    {% include_array blog_index_asides %}
-  {% else %}
-    {% include_array default_asides %}
-  {% endif %}
+  {% include asides/recent_posts.html %}
+  {% include asides/github.html %}
 </aside>
