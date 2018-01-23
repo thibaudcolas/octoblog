@@ -8,7 +8,7 @@ categories: [Events, Game, Project]
 
 This post is my post-mortem after the 2015 edition of the [Global Game Jam](http://globalgamejam.org/). It was my first Game Jam ever, and I planned to learn the [Phaser](http://phaser.io/) framework beforehand in order to get going quickly.
 
-It was completely useless, as I decided to build a game in Bash, [RubeGoldBash](http://www.rubegoldbash.com).
+It was completely useless, as I decided to build a game in Bash, [RubeGoldBash](https://github.com/thibaudcolas/rubegoldbash).
 
 <!-- more -->
 
