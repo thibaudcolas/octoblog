@@ -1,0 +1,1066 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Thibaud’s blog]]></title>
+  <link href="https://thib.me/atom.xml" rel="self"/>
+  <link href="https://thib.me/"/>
+  <updated>2018-01-24T10:50:47+00:00</updated>
+  <id>https://thib.me/</id>
+  <author>
+    <name><![CDATA[Thibaud Colas]]></name>
+    
+  </author>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Recipe: dead-simple preview environments with GitHub, Travis, and Heroku]]></title>
+    <link href="https://thib.me/recipe-dead-simple-preview-environments-with-github-travis-heroku"/>
+    <updated>2017-12-23T07:15:54+00:00</updated>
+    <id>https://thib.me/recipe-dead-simple-preview-environments-with-github-travis-heroku</id>
+    <content type="html"><![CDATA[<p>Developers love to automate things. Shave yaks. Automation can save tremendous time, but automating complex processes can also be a big time sink. <em>This is a story in compromise</em>.</p>
+
+<p>The other thing developers love is free software. I love GitHub, Travis, and Heroku because they all provide a very generous free usage tier – let’s have a look at how we can leverage them to automate preview environments (think: preview the result of a new pull request) for <a href="https://github.com/wagtail/wagtail">Wagtail</a>, a project I frequently contribute to.</p>
+
+<p><strong>A disclaimer</strong> – the end result isn’t full automation, it still is a manual process. We shall call this <em>semi-automated</em> preview environments.</p>
+
+<!-- more -->
+
+<h2 id="goal">Goal</h2>
+
+<p>We want to automate the deployment of <a href="https://github.com/wagtail/wagtail/pulls">Wagtail pull requests</a> to a preview environment that can be used to review the changes. For our purposes, we will use Wagtail’s official demo project: <a href="https://github.com/wagtail/bakerydemo">bakerydemo</a>, which has been tested extensively and contains demo content for most features.</p>
+
+<p>The general workflow is:</p>
+
+<ul>
+  <li>A contributor makes a pull request.</li>
+  <li>We decide to create a preview environment for it, and make a first deployment.</li>
+  <li>The pull request is updated.</li>
+  <li>The new version is deployed to the preview environment.</li>
+</ul>
+
+<p>Ideally this would all happen without any human interaction. Send a PR, a bot creates the environment and comments on the PR with a ready-made link. For now, all of these steps will be manual.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<blockquote>
+  <p>This is a story in using other people’s software, and infrastructure. If you have sysadmin knowledge and-or want to control your infrastructure, you will be disappointed. I hear <a href="https://www.docker.com/">Docker</a> is good.</p>
+</blockquote>
+
+<p>The basic ingredients for our recipe are:</p>
+
+<ul>
+  <li>Accounts for <a href="https://github.com">GitHub</a>, <a href="https://travis-ci.org">Travis</a> (use your GitHub account), and <a href="https://www.heroku.com/">Heroku</a>.</li>
+  <li>Command-line clients: <a href="https://github.com/travis-ci/travis.rb#command-line-client">Travis CLI</a>, <a href="https://devcenter.heroku.com/articles/heroku-cli">Heroku CLI</a>.</li>
+  <li>A fork of Wagtail, and bakerydemo</li>
+</ul>
+
+<h2 id="creating-a-deployment-ready-preview-branch-for-wagtail">Creating a deployment-ready preview branch for Wagtail</h2>
+
+<p>For Wagtail, the main thing we need to overcome is that static files need to be compiled before deployment in order for the CMS to work. Ideally, this would be done in Heroku whenever the app is deployed, but ~until I get this working~ for now we can simply create a separate branch and commit the static files to git. For this example, let’s say we are building a preview branch for <a href="https://github.com/wagtail/wagtail/pull/3942">PR #3942, Streamfield UI changes</a>, which is based off a branch named <code class="highlighter-rouge">2325-streamfield-ui</code>.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># From your Wagtail fork, open the branch you would like to deploy.</span>
+git checkout <span class="nt">-b</span> 2325-streamfield-ui
+<span class="c"># Create a branch for the static files. I like to prefix these with `dist/`:</span>
+git checkout <span class="nt">-b</span> dist/2325-streamfield-ui
+</code></pre></div></div>
+
+<p>Then, remove static file ignores in git. Here is <a href="https://github.com/thibaudcolas/wagtail/commit/87b0d16e0d36899d47d60829b44decbc8cbebf65">a commit</a> you can cherry-pick to remove all static file ignores.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Then, rebuild the static files and commit them to Git.</span>
+npm run dist
+git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s1">'Add static files to branch'</span>
+git push <span class="nt">-u</span> origin dist/2325-streamfield-ui
+</code></pre></div></div>
+
+<h2 id="creating-a-new-preview-environment-for-bakerydemo">Creating a new preview environment for bakerydemo</h2>
+
+<p>This should only be necessary once per pull request. Start by thinking for a name for the preview environment. For this example, we will use <code class="highlighter-rouge">bakerydemo-foo</code>.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># From your bakerydemo fork, create a new branch and a new Heroku app.</span>
+git checkout <span class="nt">-b</span> bakerydemo-foo
+heroku apps:create bakerydemo-foo
+<span class="c"># Link the two via a git remote pointing to Heroku.</span>
+heroku git:remote <span class="nt">--app</span> bakerydemo-foo <span class="nt">--remote</span> heroku-bakerydemo-foo
+
+<span class="c"># Let's configure the environment for Django.</span>
+heroku config:set <span class="nv">DJANGO_DEBUG</span><span class="o">=</span>off
+heroku config:set <span class="nv">DJANGO_SETTINGS_MODULE</span><span class="o">=</span>bakerydemo.settings.production
+heroku config:set <span class="nv">DJANGO_SECURE_SSL_REDIRECT</span><span class="o">=</span>on
+
+<span class="c"># Finally, we can configure Travis so it automatically syncs the branches to Heroku.</span>
+<span class="c"># This isn't strictly necessary, but it takes us a bit closer to the "no manual steps" ideal.</span>
+travis setup heroku
+travis <span class="nb">enable</span>
+</code></pre></div></div>
+
+<p>Here is the full Travis configuration:</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">sudo</span><span class="pi">:</span> <span class="no">false</span>
+<span class="na">language</span><span class="pi">:</span> <span class="s">python</span>
+<span class="na">branches</span><span class="pi">:</span>
+  <span class="na">only</span><span class="pi">:</span>
+  <span class="c1"># Only build the branches meant for the automated deployment.</span>
+  <span class="pi">-</span> <span class="s">bakerydemo-foo</span>
+<span class="na">install</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="s">echo 'There is no install step'</span>
+<span class="na">script</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="s">echo 'Automated deployment to Heroku'</span>
+<span class="na">deploy</span><span class="pi">:</span>
+  <span class="na">provider</span><span class="pi">:</span> <span class="s">heroku</span>
+  <span class="na">api_key</span><span class="pi">:</span>
+    <span class="na">secure</span><span class="pi">:</span> <span class="s">hashed API key in base64</span>
+  <span class="na">app</span><span class="pi">:</span>
+    <span class="c1"># When there are multiple preview environments, map branch names to Heroku apps.</span>
+    <span class="na">bakerydemo-foo</span><span class="pi">:</span> <span class="s">bakerydemo-foo</span>
+<span class="na">notifications</span><span class="pi">:</span>
+  <span class="na">email</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
+
+<p>Important step – in the <code class="highlighter-rouge">requirements.txt</code> (or <code class="highlighter-rouge">base.txt</code>), install from the newly created branch based on the PR:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">Django</span><span class="o">==</span>1.11.5
+django-dotenv<span class="o">==</span>1.4.1
+
+<span class="c"># Note how we reference our dist/ preview branch of Wagtail, on our fork, from the last step.</span>
+<span class="nt">-e</span> git+https://github.com/thibaudcolas/wagtail.git@dist/2325-streamfield-ui#egg<span class="o">=</span>wagtail
+
+http://playground.torchboxapps.com/matthew/wagtail/wagtailfontawesome-1.1.1-py2.py3-none-any.whl
+<span class="nv">Pillow</span><span class="o">==</span>4.0.0
+</code></pre></div></div>
+
+<p>Last step, sync up everything:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># If you've configured Travis to push to Heroku, this would be enough.</span>
+git push <span class="nt">-u</span> origin bakerydemo-foo
+<span class="c"># If you want to directly push to Heroku anyway.</span>
+git push heroku-bakerydemo-foo bakerydemo-foo:master
+</code></pre></div></div>
+
+<p>That’s it! Your preview environment should be up and running at https://bakerydemo-foo.herokuapp.com/.</p>
+
+<h2 id="updating-the-preview-environment">Updating the preview environment</h2>
+
+<p>Changes were made on the PR. Now it’s time to deploy again. This is much more straightforward:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># From your Wagtail fork, open the branch you would like to re-deploy and get the latest changes.</span>
+git checkout 2325-streamfield-ui
+git pull
+<span class="c"># Go to the static files branch and update it too.</span>
+git checkout dist/2325-streamfield-ui
+git reset <span class="nt">--hard</span> 2325-streamfield-ui
+<span class="c"># Cherry-pick the commit ignoring the static files. Note: your commit hash will be different.</span>
+git cherry-pick 5ec4c586a
+<span class="c"># Rebuild the static files and commit them to Git.</span>
+npm run dist
+git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s1">'Add static files to branch'</span>
+git push <span class="nt">-uf</span> origin dist/2325-streamfield-ui
+</code></pre></div></div>
+
+<p>Now, all you need to do is redeploy the Heroku app. Just add a new empty commit on the <code class="highlighter-rouge">bakerydemo</code> branch:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout bakerydemo-foo
+git commit <span class="nt">--allow-empty</span> <span class="nt">-m</span> <span class="s1">'Deploy latest changes to bakerydemo-foo'</span>
+<span class="c"># If you've configured Travis to push to Heroku, this would be enough.</span>
+git push <span class="nt">-u</span> origin bakerydemo-foo
+<span class="c"># If you want to directly push to Heroku anyway.</span>
+git push heroku-bakerydemo-foo bakerydemo-foo:master
+</code></pre></div></div>
+
+<p>Wait for the builds to finish, and your preview environment will be ready again at https://bakerydemo-foo.herokuapp.com/. Don’t forget to clear your cache!</p>
+
+<h2 id="improving-upon-this-workflow">Improving upon this workflow</h2>
+
+<p>This could be faster, and less error-prone. I quite like the idea of being able to deploy arbitrary repositories (rather than only the one the PR is made from), but it shouldn’t be necessary to manually build the static files and commit them to a throw-away branch. Here are some potential improvements:</p>
+
+<h3 id="build-static-files-directly-on-heroku">Build static files directly on Heroku</h3>
+
+<p>Adding the Node buildpack on Heroku, and configuring the environment to install development dependencies, it should be possible to do the compilation on Heroku, and point the <code class="highlighter-rouge">bakerydemo</code> directly at the PR’s initial branch:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>heroku buildpacks:clear
+heroku buildpacks:add heroku/nodejs
+heroku buildpacks:add heroku/python
+
+heroku config:set <span class="nv">NPM_CONFIG_PRODUCTION</span><span class="o">=</span><span class="nb">false
+</span>heroku config:set <span class="nv">NODE_ENV</span><span class="o">=</span>development
+
+<span class="c"># Then build the files in the postdeploy hook.</span>
+</code></pre></div></div>
+
+<h3 id="use-a-bot-to-do-the-manual-steps">Use a bot to do the manual steps</h3>
+
+<p>A tool like <a href="http://danger.systems/js/">Danger</a> could have a bot automatically process pull requests in the main project’s build, and do all of the steps above automatically.</p>
+
+<h3 id="leverage-higher-level-heroku-features">Leverage higher-level Heroku features</h3>
+
+<ul>
+  <li>Review apps https://devcenter.heroku.com/articles/github-integration-review-apps</li>
+  <li>Pipelines https://devcenter.heroku.com/articles/pipelines</li>
+</ul>
+
+<h2 id="onwards">Onwards</h2>
+
+<p>I hope this helps! In my experience, setting up a new preview environment takes about 15mins for someone familiar with Git / Travis / Heroku, and deploying changes is at most 5 minutes.</p>
+
+<p>I may have a look at automating this further (in particular removing the need for static file branches) later on.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python memory profiling and speed benchmarks for the Draft.js exporter]]></title>
+    <link href="https://thib.me/python-memory-profiling-for-the-draft-js-exporter"/>
+    <updated>2017-11-15T13:24:38+00:00</updated>
+    <id>https://thib.me/python-memory-profiling-for-the-draft-js-exporter</id>
+    <content type="html"><![CDATA[<p>Ever heard of <a href="https://draftjs.org/">Draft.js</a>? We are rebuilding <a href="https://github.com/wagtail/wagtail">Wagtail</a>’s rich text content management using this rich text editor framework from Facebook. Apart from a new editor, <a href="https://github.com/springload/draftail">Draftail</a>, we also needed an exporter to convert Draft.js content to HTML: the aptly-named <a href="https://github.com/springload/draftjs_exporter">draftjs_exporter</a>.</p>
+
+<p>In this post I’ll focus on this critical piece of the puzzle, which needs to operate as fast as possible regardless of how much content it has to handle. Memory profiling and benchmarks in a Python ecosystem were new to me, so here is what I learned along the way.</p>
+
+<!-- more -->
+
+<h2 id="why-this-was-necessary">Why this was necessary</h2>
+
+<p>This may seem obvious but is worth stating: to improve performance, the first step is to measure it. It’s easy for developers to start optimising code based on instinct, but tooling is available to identify which parts are actually worth focusing on, which performance bottlenecks are the biggest. The general wisdom is to focus on <strong>hot paths</strong> (parts of the code executing often, eg. in loops), and apply the <a href="https://en.wikipedia.org/wiki/Pareto_principle">80/20 rule</a>: focusing optimisation efforts on some key parts of the code can reap much of the performance improvements. That said, measuring is the only way to know for sure how much of an improvement each potential change would make.</p>
+
+<h2 id="measuring-performance">Measuring performance</h2>
+
+<p>To me, the golden standard for performance profiling is the <a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/">Chrome DevTools</a>. It profiles CPU, GPU, memory, network, frames rendering speed, and lots more, all out of the box without any change of the code. Here is a good illustration, profiling the load of <a href="https://springload.github.io/draftail/">Draftail’s demo</a>:</p>
+
+<p><a href="/images/devtools-draftail-load-profiling.png"><img src="/images/devtools-draftail-load-profiling.png" alt="Screenshot of the Draftail demo page load profiling" /></a></p>
+
+<p><em>Can you spot for how long the toolbar looks broken because the icon font isn’t loaded yet?</em></p>
+
+<p>Performance tooling in the Python ecosystem isn’t as simple to use. Lucky for us, the workload of the Draft.js exporter is much simpler: Draft.js content in, HTML out. We can focus on two metrics:</p>
+
+<ul>
+  <li>Speed – how fast the exporter outputs HTML.</li>
+  <li>Memory consumption – how much RAM the exporter uses while processing content.</li>
+</ul>
+
+<h3 id="measuring-speed-in-python">Measuring speed in Python</h3>
+
+<p>There’s a built-in module for this! Yay! The <a href="https://docs.python.org/3.6/library/profile.html">cProfile</a> module is part of the standard library, has little overhead, and provides insights into which parts of the code are slow with minimal work. Combined with <a href="https://docs.python.org/3.6/library/profile.html#module-pstats">pstats</a> (built-in too!), its output looks like:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   820882 function calls (777342 primitive calls) in 0.563 seconds
+
+   Ordered by: cumulative time
+   List reduced from 82 to 10 due to restriction &lt;10&gt;
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      792    0.013    0.000    0.563    0.001 html.py:30(render)
+     5650    0.066    0.000    0.437    0.000 html.py:59(render_block)
+     5650    0.018    0.000    0.129    0.000 wrapper_state.py:89(element_for)
+     5650    0.040    0.000    0.100    0.000 html.py:85(build_command_groups)
+      792    0.001    0.000    0.098    0.000 dom.py:138(render)
+14924/792    0.017    0.000    0.098    0.000 string.py:78(render)
+14914/792    0.011    0.000    0.097    0.000 string.py:74(render_children)
+14914/792    0.018    0.000    0.095    0.000 string.py:76(&lt;listcomp&gt;)
+18026/16862  0.047    0.000    0.091    0.000 dom.py:58(create_element)
+    29668    0.014    0.000    0.049    0.000 dom.py:134(append_child)
+</code></pre></div></div>
+
+<p>From this, we learn that:</p>
+
+<ul>
+  <li>The code took 563ms to run, with 820’882 function calls.</li>
+  <li>Of this time and those function calls, the <code class="highlighter-rouge">render_block</code>, <code class="highlighter-rouge">element_for</code>, <code class="highlighter-rouge">build_command_groups</code> were all called 5’650 times.</li>
+  <li>Excluding the main API call <code class="highlighter-rouge">HTML.render()</code>, the <code class="highlighter-rouge">render_block</code> function is what took the longest to run, at 437ms.</li>
+  <li>The functions in <code class="highlighter-rouge">string.py</code> and <code class="highlighter-rouge">dom.py</code> run often, they should get special attention when optimising the code.</li>
+</ul>
+
+<p>Here is minimal code that produces such a report. The actual output comes from <a href="https://github.com/springload/draftjs_exporter/blob/4ca2827896cf4f05423e8721209896d49cf89a91/benchmark.py">benchmark.py</a> in the Draft.js exporter repository.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">cProfile</span>
+<span class="kn">from</span> <span class="nn">pstats</span> <span class="kn">import</span> <span class="n">Stats</span>
+
+
+<span class="n">pr</span> <span class="o">=</span> <span class="n">cProfile</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span>
+<span class="n">pr</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'Here, call the code you want to measure the performance of </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+
+<span class="n">pr</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Stats</span><span class="p">(</span><span class="n">pr</span><span class="p">)</span>
+
+<span class="c"># This stats output is highlight configurable. Take the time to learn what options are available.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">strip_dirs</span><span class="p">()</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s">'cumulative'</span><span class="p">)</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="profiling-memory-consumption">Profiling memory consumption</h3>
+
+<p>Did you see how simple it was to get a basic but effective speed measurement? No pip install, just a couple of imports, a few more lines and voilà! Too bad memory profiling isn’t as simple. I’m still learning how best to do this, here is what I found out so far.</p>
+
+<p>The best package I found for this is <a href="https://pypi.python.org/pypi/memory_profiler">memory_profiler</a>. It provides line-by-line profiling of functions, which makes it invaluable to investigate specific parts of a program. Here is a sample output, again from <a href="https://github.com/springload/draftjs_exporter/blob/4ca2827896cf4f05423e8721209896d49cf89a91/benchmark.py">benchmark.py</a>:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    #L   Mem usage       Increment      Line Contents
+    95  40.820312 MiB   0.000000 MiB   @profile(precision=6)
+    96                                 def memory_consumption_run():
+    97  40.820312 MiB   0.000000 MiB       exporter = HTML(config)
+    98
+    99  40.949219 MiB   0.128906 MiB       for content_state in content_states:
+    100 40.949219 MiB   0.000000 MiB           exporter.render(content_state)
+</code></pre></div></div>
+
+<p>We learn that:</p>
+
+<ul>
+  <li>The whole program takes up about 41 MiB (<a href="https://en.wikipedia.org/wiki/Mebibyte">mebibytes</a>, about 43MB).</li>
+  <li>Initialising the exporter doesn’t consume much memory if any.</li>
+  <li>Processing the export consumes ± 129KiB of memory in this example.</li>
+</ul>
+
+<p>What’s cool about memory_profiler is that it also comes with a way to chart memory usage over time, using <a href="http://matplotlib.org/">Matplotlib</a>:</p>
+
+<p><img src="/images/draftjs_exporter-memory-profiler.png" alt="Screenshot of the memory consumption of the exporter over time, made with memory_profiler" /></p>
+
+<p>Here, we can see that after a sharp increase in memory usage, the memory consumption is mostly flat over the execution of the script. Unfortunately, using the profiler to understand where this memory consumption comes from takes quite a bit of manual work and fiddling with the code. The profiler is limited to <em>line-by-line reporting</em> for functions annotated with the <code class="highlighter-rouge">@profile</code> decorator or full-script over-time consumption, it has quite a big overhead which makes it impractical to run frequently (say on every code change), and most importantly there is no notion of “cumulative” memory consumption for a function. Calling a function 10 times will produce 10 separate reports.</p>
+
+<p>Then again, getting that much information was easy:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">memory_profiler</span> <span class="kn">import</span> <span class="n">profile</span>
+
+<span class="nd">@profile</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">memory_consumption_run</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'Easy!'</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">'Here, call the code you want to measure the performance of </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+
+<span class="n">memory_consumption_run</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>And to produce the chart:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mprof run benchmark.py
+<span class="c"># NB: the plot command relies on Matplotlib. It may be a bit finicky to make this work on your system.</span>
+mprof plot
+</code></pre></div></div>
+
+<p>I’m still exploring how best to leverage memory_profiler. Its author has a <a href="http://fa.bianp.net/blog/2014/plot-memory-usage-as-a-function-of-time/">great blog post</a> that goes more in depth. For the exporter, I was able to identify that most of the memory consumption comes from loading the code, rather than its actual execution:</p>
+
+<ul>
+  <li>± 11.5 MiB are for the base Python process (ie. an empty script consumes that much)</li>
+  <li>± 15 MiB comes from the test content used in the script.</li>
+  <li>± 8 MiB comes from loading BeautifulSoup.</li>
+  <li>That leaves us with ± 6.25 MiB for the exporter itself.</li>
+</ul>
+
+<h3 id="using-a-good-benchmark">Using a good benchmark</h3>
+
+<p>All of those numbers are interesting on their own, but without any context it’s hard to judge of their significance. For a while, the exporter was profiled with a content load equivalent to a small blog post – A good indicator, but not the most representative of the types of site it’s meant for (large-scale, content-driven, hundreds of pages of rich text). To address this, I built <a href="https://github.com/thibaudcolas/markov_draftjs">markov_draftjs</a>: a repository of sample content representative of a big website, with the content equivalent of about 200 pages of rich text. The actual content is computer-generated with <a href="https://en.wikipedia.org/wiki/Markov_chain">Markov chains</a> of <a href="https://www.gutenberg.org/">Project Gutenberg</a> books, while the specific rich text features in use (and their frequency in the content) match the load of a real CMS-driven site.</p>
+
+<p>The takeaway is: without a good benchmark, it will be harder to judge whether given optimisations actually make a difference in real-world performance!</p>
+
+<h2 id="optimising-the-exporter">Optimising the exporter</h2>
+
+<p>Coming back to the purpose of this work, we wanted to make the exporter faster. <a href="https://github.com/su27">@su27</a>, an early adopter, <a href="https://github.com/springload/draftjs_exporter/issues/31">started this conversation</a> with performance feedback and profiling help.</p>
+
+<p>This quickly led to a <strong>20-30x</strong> (!) speedup, from 500 to 10ms for the sample “blog post size”. This one improvement came from a <a href="https://github.com/springload/draftjs_exporter/commit/24a048e0b36cc19c06c17110cc3cacf442d5fb06"><em>single line of code</em></a>, perfectly illustrating the importance of the 80/20 rule. With these “low-hanging fruit” optimisations out of the way, the biggest performance bottleneck was the HTML generation, which led us to change the exporter API to <a href="https://github.com/springload/draftjs_exporter#alternative-backing-engines">allow custom HTML-generating engines</a> to facilitate iterations on this code. If you want to learn more than necessary about lxml vs html5lib vs (or with!) BeautifulSoup, the Draft.js repository and its issues contain <a href="https://github.com/springload/draftjs_exporter/tree/master/docs#rd-notes">plenty</a> of <a href="https://github.com/springload/draftjs_exporter/pull/56">notes</a>.</p>
+
+<p>With the performance tooling in place, we were then able to check that new features added to the exporter would not degrade its performance, and to make <a href="https://github.com/springload/draftjs_exporter/pull/58">incremental improvements</a> by changing its content parsing logic. We made good progress from version to version, all the while adding more functionality:</p>
+
+<p><img src="/images/exporter-speed-per-version.png" alt="Bar chart of Draft.js exporter speed per version, for each engine, showing an increase from version to version, with the right-most &quot;string&quot; engine being the fastest." /></p>
+
+<blockquote>
+  <p>Exporter speed per version, for each HTML generation engine.</p>
+</blockquote>
+
+<details>
+<summary><em>View chart data</em></summary>
+
+```text
+version,html5lib,lxml,string
+v0.7.0,15.37,
+v0.8.0,19.44,
+v0.8.1,19.26,
+v0.9.0,18.84,8.99
+v1.0.0,18.84,8.99
+v1.1.0,18.57,8.87,8.08
+```
+
+</details>
+
+<p>The rightmost line is the latest progress: a new dependency-free engine, thanks to the feedback of <a href="https://github.com/BertrandBordage">@BertrandBordage</a>, who knows a great deal about Python performance and optimisations (he made <a href="https://github.com/BertrandBordage/django-cachalot">Django Cachalot</a>, a popular ORM caching tool for Django!).</p>
+
+<p>With the engine API, and the benchmark content work done previously, we were able to meaningfully compare the <a href="https://github.com/springload/draftjs_exporter/pull/77#issuecomment-344272238">impact of various optimisations</a>, and of the different engines:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>html5lib         lxml              string
+Min.   :1.271    Min.   :0.6150    Min.   :0.5190
+1st Qu.:1.333    1st Qu.:0.6300    1st Qu.:0.5310
+Median :1.347    Median :0.6350    Median :0.5360
+Mean   :1.351    Mean   :0.6366    Mean   :0.5384
+3rd Qu.:1.361    3rd Qu.:0.6410    3rd Qu.:0.5410
+Max.   :1.756    Max.   :0.7960    Max.   :1.0250
+</code></pre></div></div>
+
+<p>All in all, we went from <a href="https://github.com/springload/draftjs_exporter/issues/31">5 seconds</a> to render the equivalent of one small blog post, to <a href="https://github.com/springload/draftjs_exporter/pull/77#issuecomment-344272238">500ms</a> for 792 content chunks representative of one whole website!</p>
+
+<h3 id="next-steps">Next steps</h3>
+
+<p>With the HTML generation now operating only on strings without any further dependencies, it feels like the next speedups will be much harder to reach. Here are some areas to explore:</p>
+
+<ul>
+  <li>Writing the same “string” engine in C? The engine <a href="https://github.com/springload/draftjs_exporter/blob/4ca2827896cf4f05423e8721209896d49cf89a91/draftjs_exporter/engines/string.py">is only 100 lines</a> of code, most of which run on the hot paths of the exporter’s rendering code.</li>
+  <li>Refactoring the content parsing algorithm to reduce algorithmic complexity. Surely this could be at least <code class="highlighter-rouge">O(N)</code> on the number of blocks, if it’s not already.</li>
+  <li>Further optimising for real-world workloads. Because test content isn’t always representative of real-world usage.</li>
+  <li>Streaming rendering? I have no idea how hard this would be to do in Python / Django, but this would definitely speed-up the rendering of long content chunks in the context of a website.</li>
+</ul>
+
+<h2 id="takeaways">Takeaways</h2>
+
+<p>Starting this process, I would have never thought that the biggest speedups would come from fixing programming mistakes. Having the tooling in place quickly made these obvious, and came with the biggest speedups (20-30x). Hunting for further improvements forced us to rethink the API of the exporter, and led us to simplifying it greatly <a href="https://github.com/springload/draftjs_exporter#custom-components">to match that of React</a>. Finally, we had to consider real-world content workloads over experimental ones to find further speedups. In the end, it’s not just the exporter’s performance that has improved but its overall quality and usefulness as a general-purpose library.</p>
+
+<p>For Wagtail, introducing components that are performance-tested (and <a href="https://coveralls.io/github/springload/draftjs_exporter?branch=master">heavily unit-tested</a>, more on that in another post) increases the confidence that the changes will not have adverse effects for end users, and generally raises the bar for software quality. Now onto <a href="https://springload.github.io/draftail/">Draftail</a> performance testing!</p>
+
+<p><em>Special thanks to <a href="https://github.com/su27">@su27</a>, <a href="https://github.com/loicteixeira">Loic Teixeira</a>, and <a href="https://github.com/BertrandBordage">Bertrand Bordage</a> for their help building the exporter. Thanks to <a href="https://springload.co.nz/">Springload</a> for supporting building this open-source project in the first place 💚.</em></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Using forks as dependencies for JS projects]]></title>
+    <link href="https://thib.me/using-forks-as-dependencies-for-js-projects"/>
+    <updated>2017-05-12T08:35:03+00:00</updated>
+    <id>https://thib.me/using-forks-as-dependencies-for-js-projects</id>
+    <content type="html"><![CDATA[<p>Here are guidelines I wrote on how to (not) use forks of dependencies in the context of JavaScript projects.</p>
+
+<!-- more -->
+
+<p><em>Public service announcement – on the usage of forks as dependencies in JS projects</em></p>
+
+<p>I’m seeing this done more often than I would like. Forks make it unnecessarily to maintain projects over time, as the fork effectively becomes part of the code we have to “own” on top of the project code – it doesn’t get updated to fix bugs or otherwise, without being directly touched again.</p>
+
+<p>Here are a few reasons why forks are bad:</p>
+
+<ul>
+  <li>They increase how much code we have to look after and maintain, falling out of date, preventing us from receiving the bug fixes and improvements released upstream.</li>
+  <li>They are hard to upgrade – we can’t use semantic versioning for a project that does not come from a package registry.</li>
+  <li>They are not “immutable” – if we remove the project on GitHub, we completely lose the fork’s code, and the project builds. On the contrary, npm and pip do not allow dependencies to be overwritten / removed.</li>
+</ul>
+
+<p>Now forks aren’t always bad, but they should be considered a last resort. Here are alternatives to consider:</p>
+
+<ul>
+  <li>Do not rely on this dependency. Use something else instead.</li>
+  <li>If the dependency’s code is small (not much of it, not many dependencies of its own), consider copy/pasting it directly into your project. It won’t make the code easier to update, but at least now we know what we really have to look after.</li>
+</ul>
+
+<p>If you still think forking is the right solution, here are rules to follow:</p>
+
+<ul>
+  <li><em>Always</em> have the fork on your organisation’s GitHub account, so everyone can update it.</li>
+  <li><em>Never</em> rely on someone else’s fork. We don’t know what they will do with it.</li>
+  <li>Make a branch for your extra code (following our branch naming conventions).</li>
+  <li>If the project requires compilation, compile the code on the project directly, make a separate “release” branch for your extra code and commit the compiled files there.</li>
+  <li>Make a tag for the “releasable” versions of your changes you will want to rely on later.</li>
+  <li><em>Reference the dependency based on the tag</em>, so we know what version we are at, and it is less likely to change than a branch.</li>
+  <li>Make a PR to the upstream project. They will let you know whether your change is appropriate, and potentially merge it, so we can start relying on that project again.</li>
+</ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Writing about Wagtail]]></title>
+    <link href="https://thib.me/writing-about-wagtail"/>
+    <updated>2017-05-04T08:35:03+00:00</updated>
+    <id>https://thib.me/writing-about-wagtail</id>
+    <content type="html"><![CDATA[<p>I’m doing more and more of it!</p>
+
+<p>Here are two recent posts I’m very proud of:</p>
+
+<ul>
+  <li><a href="https://www.springload.co.nz/blog/awesome-wagtail/">Awesome Wagtail</a></li>
+  <li><a href="https://www.springload.co.nz/blog/bringing-our-mad-skillz-wagtail/">Bringing our mad skillz to Wagtail</a></li>
+</ul>
+
+<p>Both come from my involvement with Wagtail development sprints (as a member of the core developer team), in the Netherlands and Iceland. It’s great to be a part of this – more to come!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Django Girls Wellington 2016]]></title>
+    <link href="https://thib.me/django-girls-wellington-2016"/>
+    <updated>2016-12-18T01:38:31+00:00</updated>
+    <id>https://thib.me/django-girls-wellington-2016</id>
+    <content type="html"><![CDATA[<p>Wuh! We did it! <a href="https://djangogirls.org/wellington/">Django Girls Wellington</a> is a thing! I’m so glad we were able to pull this off.</p>
+
+<!-- more -->
+
+<p>This was a lot of effort from a lot of people, and I am very proud that we made it work. You could really feel the excitment on the day of the event, and people looked like they were genuinely having fun – coding for the first time!</p>
+
+<p>Here are some of the pictures of the event for posterity.</p>
+
+<p><img src="/images/djangogirls-loic.jpg" alt="Attendees going through the tutorial" /></p>
+
+<p><img src="/images/djangogirls-rich.jpg" alt="Problem solving" /></p>
+
+<p><img src="/images/djangogirls-sam.jpg" alt="Walkthrough" /></p>
+
+<p><img src="/images/djangogirls-sandra.jpg" alt="Programming is fun!" /></p>
+
+<blockquote>
+  <p>Photo credit <a href="http://www.kinfolkphotography.co.nz/">Kinfolk Photography</a></p>
+</blockquote>
+
+<p>Until next time!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Rails Girls Oulu 2016]]></title>
+    <link href="https://thib.me/rails-girls-oulu-2016"/>
+    <updated>2016-11-06T11:57:09+00:00</updated>
+    <id>https://thib.me/rails-girls-oulu-2016</id>
+    <content type="html"><![CDATA[<p>Today <a href="http://railsgirls.com/oulu">Rails Girls</a> happened again in Oulu – I got to join as a coach and helped a group of 30 women from all sorts of backgrounds to learn programming.</p>
+
+<!-- more -->
+
+<p>Rails Girls workshops follow a tried and true format, with the necessary “install” steps held on friday evening and a full day workshop to create a Rails site/app on saturday.</p>
+
+<p><img src="/images/railsgirls-oulu-jbear.jpg" alt="Picture of the room, Jason presenting, the audience sitting around work tables" /></p>
+
+<blockquote>
+  <p><a href="https://twitter.com/skunkyjay">Jason</a> introducing everyone to the basic concepts of programming.</p>
+</blockquote>
+
+<p>I got involved because I believe strongly in the necessity of those events. Diversity in tech matters. Outreach programs are an excellent way to incubate people who aren’t comfortable to cope with us from the beginning on, and grow our community in the long term.</p>
+
+<p><img src="/images/railsgirls-oulu-bentobox.jpg" alt="Picture of the room, Api gives an exercise for the audience" /></p>
+
+<blockquote>
+  <p>Technology can be overwhelming, especially for newcomers. So many concepts to understand, tools to know about! Api guides the room through a “Bentobox” exercise to give some structure to all of those tools.</p>
+</blockquote>
+
+<p><img src="/images/railsgirls-oulu-dan.jpg" alt="Picture of the room, Dan presenting, the audience sitting around work tables" /></p>
+
+<blockquote>
+  <p>Dan presents <a href="http://buutti.com/">Buutti</a>, an initiative for technology newcomers &amp; enthusiasts to go beyond one-off events like Rails Girls, and have a way to get involved on a more frequent basis.</p>
+</blockquote>
+
+<h2 id="my-takeaway-as-a-coach">My takeaway as a coach</h2>
+
+<p>One of the reasons why I wanted to coach here is that my colleagues and I are organising <a href="https://djangogirls.org/wellington/">Django Girls Wellington</a> in december. What best training for this than to coach at a similar event!</p>
+
+<p>Here are some things that I will keep in mind:</p>
+
+<ul>
+  <li>Not all people learn the same – adapt to each person.</li>
+  <li>Basic steps like “edit code - save file - switch to browser - refresh page” are not basic for newcomers.</li>
+  <li>You will be late on schedule. People will arrive late.</li>
+  <li>Most likely, people will be using Windows. Sharpen your Windows skills beforehand.</li>
+  <li>People will be using computers in other languages than english.</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The impact of open-source]]></title>
+    <link href="https://thib.me/the-impact-of-open-source"/>
+    <updated>2016-09-11T20:30:42+00:00</updated>
+    <id>https://thib.me/the-impact-of-open-source</id>
+    <content type="html"><![CDATA[<p>This is not an opinion piece, just me realizing that people actually do use the stuff I put up on GitHub. And that my open-source contributions have real, tangible impact.</p>
+
+<!-- more -->
+
+<p>Today I changed my GitHub username from ThibWeb to <a href="https://github.com/thibaudcolas">thibaudcolas</a>. I had been thinking about making the switch for a while, for a bunch of reasons, and GitHub was the last holdout: this username is all over the 100+ repositories I have contributed to. It was quite a long process to update it across all of the repositories I had available locally on my computer, but nothing off the charts (Sublime Text handles search+replace on thousands of files without sweating).</p>
+
+<p>The real surprise came from this search on GitHub: https://github.com/search?utf8=%E2%9C%93&amp;q=ThibWeb. The search results are packed with mentions of my open-source contributions in various projects:</p>
+
+<ul>
+  <li>A bunch of people committing their <a href="https://github.com/cferdinandi/smooth-scroll"><code class="highlighter-rouge">smooth-scroll</code></a> dependency – I wrote unit tests for this library a while ago, among other changes. Glad that helped!</li>
+  <li>This <a href="https://github.com/dnd1/stronger-loop">stronger-loop</a> NodeSchool workshop which cites <a href="https://www.npmjs.com/package/workshopper-mocha-boilerplate">workshopper-mocha-boilerplate</a> as an inspiration. Glad that helped too.</li>
+  <li>Mentions of the french translations for jQuery Validate I did a while ago.</li>
+  <li>And a lot of other things</li>
+</ul>
+
+<p>… and here are four people who built their resume with the JSON resume theme <a href="https://github.com/thibaudcolas/jsonresume-theme-eloquent">Eloquent</a> I made a few years ago, and that I used to apply to my current job at Springload:</p>
+
+<ul>
+  <li>https://omidreyhani.github.io/</li>
+  <li>https://luoxiaobatman.github.io/</li>
+  <li>https://guntherjh.github.io/</li>
+  <li>http://victorperin.ninja/resume/</li>
+</ul>
+
+<p>Glad this helps too :)</p>
+
+<p>PS: Wow! <a href="https://github.com/pulls?q=is%3Apr+author%3Athibaudcolas+is%3Apublic">106 PRs so far</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Waffle vs Trello]]></title>
+    <link href="https://thib.me/waffle-vs-trello"/>
+    <updated>2016-08-20T09:34:00+00:00</updated>
+    <id>https://thib.me/waffle-vs-trello</id>
+    <content type="html"><![CDATA[<p>I am a big user of <a href="https://trello.com">Trello</a>. For todolists, waterfall projects, kanban boards, all the things. I particularly love its flexibility – there are a thousand ways to structure your work with it. This can be overwhelming if you’re not familiar with it though.</p>
+
+<p>At Springload, we took one of the competing tools, <a href="https://waffle.io/">Waffle</a>, for a spin. Here are my notes.</p>
+
+<!-- more -->
+
+<p>While Trello is a standalone tool, Waffle is built upon GitHub issues. Instead of duplicating the information between multiple trackers/tools, GitHub issues and pull requests become the single source of truth. Since they are used for development anyway, we might as well get the most out of them and reduce our tool fragmentation!</p>
+
+<p>I took Waffle for a spin on one of our prototyping projects, and here is the conclusion: <strong>while I like GitHub issues, they might not be an appropriate medium for our project tasks</strong>. Waffle has interesting features that distinguish itself from Trello, but they are too targeted towards development tasks for the tool to be as relevant to non-developers, or to developers handling other aspects of the work. I like the fact that Waffle pushes you to do more Markdown and “GitHub”, but this isn’t always appropriate.</p>
+
+<h2 id="waffle-things-i-like">Waffle things I like</h2>
+
+<ul>
+  <li>Tighter integration with GitHub means that it will be easier for GitHub to get more non-code use. Which can be a good thing?</li>
+  <li>Filters are persisted in URL</li>
+</ul>
+
+<h2 id="waffle-things-i-dont-like">Waffle things I don’t like</h2>
+
+<ul>
+  <li>Waffle uses the word “Issue”, as GitHub does. This might be innocuous but it’s not a word I like to describe what we do. We’re organising tasks, not bugs and support tickets. Trello says “Card”, which is more neutral.</li>
+  <li>Does not have color-less labels</li>
+  <li>Does not support multiple “Backlog” or “Done” columns</li>
+  <li>Does not support attaching images to cards/issues
+    <ul>
+      <li>Nor other files…</li>
+    </ul>
+  </li>
+  <li>Cannot create a board without a GitHub repository</li>
+</ul>
+
+<h2 id="trello-things-i-like">Trello things I like</h2>
+
+<ul>
+  <li>Lots</li>
+  <li>Mainly,
+    <ul>
+      <li>the UI is more refined</li>
+      <li>it proposes interesting integration, and</li>
+      <li>it is way easier to use lists of tasks via the Checklist feature</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I will stick with Trello over Waffle because:</p>
+
+<ul>
+  <li>Waffle’s interface isn’t as good in general, doesn’t do as many things</li>
+  <li>You need a GitHub repository to create a Waffle board.</li>
+  <li>You need a GitHub account to access a Waffle board.</li>
+</ul>
+
+<p>On the contrary, with Trello:</p>
+
+<ul>
+  <li>The interface is amazing, although confusing to newcomers, not more than Waffle’s</li>
+  <li>You can create as many boards as you want to, give access to some to the clients, keep some for ourselves, keep some private just for you</li>
+  <li>There are more integrations and other things we could make use of but aren’t using at the moment (Calendars view, card aging, vote, Slack/GitHub integrations)</li>
+</ul>
+
+<p>Go #TeamTrello!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[React’s patents grant]]></title>
+    <link href="https://thib.me/react-patents-grant"/>
+    <updated>2016-08-10T10:47:07+00:00</updated>
+    <id>https://thib.me/react-patents-grant</id>
+    <content type="html"><![CDATA[<p>I have been using React at work and personally for more than a year now. It’s been a great experience overall, and this library seems to be having a profound impact on front-end development (in good and bad ways). There is a lot of FUD around React’s PATENTS file. I’m no lawyer, so this blog post is just a list to the resources I have gathered over time on the topic.</p>
+
+<!-- more -->
+
+<p>And by resources, I mostly mean Dan Abramov’s numerous tweets. I could write entire blog posts and make entire talks consisting solely of his tweets.</p>
+
+<p>Note that most of those resources do not have legal value, they are just here to show that people in companies of all sizes do feel comfortable using React, and that the language in this file does not impact their day to day life.</p>
+
+<ul>
+  <li><a href="https://news.ycombinator.com/item?id=12108273">Comment from a React developer</a></li>
+  <li><a href="https://twitter.com/dan_abramov/status/754992732721012736">React at Microsoft</a></li>
+  <li><a href="https://twitter.com/dan_abramov/status/754997071271329793">React at Apple</a></li>
+  <li><a href="https://twitter.com/dan_abramov/status/754993062787637248">React at Google</a></li>
+  <li>Discussion about someone’s company’s legal department refusing to use React: https://discuss.reactjs.org/t/legal-department-did-not-allow-use-of-react/3309/4</li>
+</ul>
+
+<p>Other notable users of React include Twitter, Instagram (Facebook), AirBnb, etc.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Reliable front-end building blocks]]></title>
+    <link href="https://thib.me/reliable-front-end-building-blocks"/>
+    <updated>2016-06-28T11:21:29+00:00</updated>
+    <id>https://thib.me/reliable-front-end-building-blocks</id>
+    <content type="html"><![CDATA[<p>Having just shipped a big “single-page app” project, I think it would be useful to list all of its dependencies among the current climate of dependency burnout in front-end land. Those were all very stable and easy to combine.</p>
+
+<!-- more -->
+
+<ul>
+  <li><a href="https://facebook.github.io/react/">React</a> – I’m not doing any JS front-end without React these days. The development experience is amazing, and they have done a terrific job at being highly stable over time. It’s always a pleasure to upgrade the React version.</li>
+  <li><a href="http://redux.js.org/">Redux</a> – Very stable and reliable, high learning curve but high reward too</li>
+  <li><a href="https://d3js.org/">D3 (v3)</a> – One of my favorite tools. Can’t wait for v4 to be out, the main issue with D3 as it stands now is that I’m only using a fifth of its features but still shipping it all in my JS</li>
+  <li>Springload’s reusable components <a href="https://springload.github.io/react-simpler-select/"><code class="highlighter-rouge">react-simpler-select</code></a>, <a href="https://springload.github.io/react-svg-icon/"><code class="highlighter-rouge">react-svg-icon</code></a>, <a href="https://github.com/springload/react-accessible-modal"><code class="highlighter-rouge">react-accessible-modal</code></a> Because for UI elements you likely want to have your own touch.</li>
+  <li>Flexbox – Such a pleasure to build layouts with this, if browser support isn’t too advanced (no IE10 and below)</li>
+  <li><a href="https://github.com/moroshko/react-autosuggest"><code class="highlighter-rouge">react-autosuggest</code></a> – A nice UI component that took care of what’s hard - keyboard interactions and accessibility</li>
+  <li><a href="https://github.com/reactjs/react-router/"><code class="highlighter-rouge">react-router</code></a> – Probably the least stable of all of those building blocks, but they have done a better job at this since version 2.</li>
+  <li><a href="https://github.com/springload/frontend-starter-kit/blob/master/gulpfile.js/tasks/js.js">Browserify + gulp builds</a> – Webpack might be better, but its documentation / ease of use is not.</li>
+</ul>
+
+<p>Other goodies:</p>
+
+<ul>
+  <li><a href="https://github.com/sudodoki/copy-to-clipboard"><code class="highlighter-rouge">copy-to-clipboard</code></a></li>
+  <li>Client-side search with <a href="https://github.com/weixsong/elasticlunr.js"><code class="highlighter-rouge">elasticlunr</code></a> – Like lunr.js but better.</li>
+  <li>sessionStorage caching</li>
+  <li>performance tracking</li>
+  <li><a href="https://github.com/googleanalytics/autotrack/"><code class="highlighter-rouge">autotrack</code></a> analytics - Another one of my favorites, more recent.</li>
+  <li><a href="https://github.com/lodash/babel-plugin-lodash/"><code class="highlighter-rouge">babel-plugin-lodash</code></a> for smaller builds</li>
+  <li>npm shrinkwrap – Finally!</li>
+  <li><a href="https://github.com/thibaudcolas/nightmarejs-integration-tests">Integration tests with Nightmare</a></li>
+  <li><a href="https://github.com/springload/reusable-d3-charts/blob/master/client/js/api/download.js">SVG+CSS export as SVG/PNG</a> – The more R&amp;D part of this project, which turned out to work quite well</li>
+</ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Warning: Browserify and the React ecosystem]]></title>
+    <link href="https://thib.me/warning-browserify-and-the-react-ecosystem"/>
+    <updated>2016-06-25T16:55:22+00:00</updated>
+    <id>https://thib.me/warning-browserify-and-the-react-ecosystem</id>
+    <content type="html"><![CDATA[<p>While working on yet another React project using <a href="https://github.com/reactjs/react-router/"><code class="highlighter-rouge">react-router</code></a>, I discovered ±3kb of minified warning messages / development aids in my JavaScript bundle.</p>
+
+<!-- more -->
+
+<p>As it turns out, React’s practice of having different code for “development mode” and “production” is being used by other projects from community members, but not with the same level of caution – for this tooling to work, the build steps need to use specific configuration: https://facebook.github.io/react/docs/package-management.html.</p>
+
+<p>Not all projects mention this, and more importantly not all projects warn you if you don’t. The solution? Configure your build step to remove those development aids in <em>the entire bundle</em>, and not just your own code.</p>
+
+<p>More info at https://github.com/thibaudcolas/react-router-browserify-build/.</p>
+
+<p>Other related links for future reference:</p>
+
+<ul>
+  <li>https://github.com/ReactJSTraining/history/pull/307</li>
+  <li>https://github.com/reactjs/react-router/pull/3503</li>
+  <li>http://stackoverflow.com/questions/22118915/how-to-turn-on-off-reactjs-development-mode</li>
+  <li>http://dev.topheman.com/make-your-react-production-minified-version-with-webpack/</li>
+</ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[(Not) building custom e-commerce marketplaces]]></title>
+    <link href="https://thib.me/not-building-custom-e-commerce-marketplaces"/>
+    <updated>2016-06-14T16:38:27+00:00</updated>
+    <id>https://thib.me/not-building-custom-e-commerce-marketplaces</id>
+    <content type="html"><![CDATA[<p>I think it’s now the third time I’ve had to think about the best approach to create new e-commerce marketplaces.</p>
+
+<p><strong>TL;DR;</strong> This is hard, and there is no go-to marketplace as a service yet. But there are alternative approaches.</p>
+
+<!-- more -->
+
+<blockquote>
+  <p>Note: this text was originally in email form.</p>
+</blockquote>
+
+<p>In general, I would try to challenge the conclusion that you <strong>“need to create a commerce marketplace from scratch”</strong> as much as possible, as it will be a big up front effort that might not yield reliable results fast enough. Here are alternative things to look at:</p>
+
+<ul>
+  <li>https://www.shopify.com/, build e-commerce shops in minutes (likely not to be for you, but well worth a try)</li>
+  <li>http://inselly.com/, http://www.instaorders.com/, tools to sell through Instagram</li>
+  <li>http://pasary.com/, best marketplace as a service contender… from the looks of their product site.</li>
+</ul>
+
+<h1 id="the-sell-through-instagram-approach">The “sell through Instagram” approach</h1>
+
+<p>No need to build user profile features (Instagram account instead) and product pages (Instagram “posts”). You’d just need to build enough product discovery (hashtags!) and transaction record features on top of Instagram so that your users can successfully browse items and complete transactions. I’ve seen many success stories of shops doing their business only on free Instagram and Messenger/WhatsApp accounts. Get people advertising their items there, track point counts with your custom code, and get people doing transactions.</p>
+
+<h1 id="the-custom-approach-with-a-web-framework">The “custom” approach with a web framework</h1>
+
+<p>Have a good look through reusable, semi off the shelf solutions like this matrix of Django-based e-commerce modules: https://www.djangopackages.com/grids/g/ecommerce/. It’s important to note that most of the building blocks out there are meant to create e-commerce sites for shops or retailers, not full-fledged platforms/marketplaces with transactions between different users.</p>
+
+<p>IMHO it’s paramount to focus on your MVP features to ship something fast, validate it, iterate on it. Web technologies are great at that. There are plenty of tools to reuse (Django / Oscar- Python, Drupal Commerce - PHP, Magento - PHP). Pick the technology you’re most familiar with.</p>
+
+<p>For single-page applications – this is where most of the web apps are headed these days, but I wouldn’t advise you to go in that direction just yet if you don’t have the technical resources to do so. From a technical standpoint you can still do something like PJAX (for example https://github.com/defunkt/jquery-pjax) to get that same performance feeling. For the UI, I think that Bootstrap is a good choice if this isn’t your strong point. Again for the purpose of creating something fast.</p>
+
+<p>For that approach to work, you’ll most likely need more than 1/2 developers. Get coding!</p>
+
+<h1 id="regarding-startup-weekend">Regarding Startup Weekend</h1>
+
+<p>I have attended multiple of those in the past. My two cents: most of the times the ideas are great but the teams lack the resources (time, finances, business know-how, technical know-how) to bring those ideas to fruition.</p>
+
+<p>Try to explore those alternative solutions first (eg. building on top of established social platforms) so that you can get going, <strong>fail fast</strong>, make progress. If you succeed there, you’ll have the opportunity to take this to the next level, get financial backing and tailor-build the best platform for your users to be happy and your business model to work.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Electron: JavaScript for desktop apps]]></title>
+    <link href="https://thib.me/electron-javascript-for-desktop-apps"/>
+    <updated>2016-05-30T08:33:37+00:00</updated>
+    <id>https://thib.me/electron-javascript-for-desktop-apps</id>
+    <content type="html"><![CDATA[<p><a href="http://www.wsj.com/articles/SB10001424053111903480904576512250915629460">Software is eating the world</a>, and JavaScript is eating software.</p>
+
+<p>On the same line as a <a href="http://www.wired.com/2016/05/javascript-conquered-web-now-taking-desktop/">recent Wired article</a>, I argue that we should take notice of and leverage platforms like Electron. <a href="https://www.springload.co.nz/blog/blurring-line-between-web-and-desktop-apps/">Read on “Blurring the line between web and desktop apps” on Springload’s website</a>.</p>
+
+<!-- more -->
+
+<p>If you have extra time, go look at the <a href="http://electron.atom.io/apps/">showcase of apps built with Electron</a> and then try one like <a href="https://github.com/sindresorhus/caprine">Caprine</a>.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Blog posts and front-end development]]></title>
+    <link href="https://thib.me/blog-posts-and-front-end-development"/>
+    <updated>2016-03-01T17:48:43+00:00</updated>
+    <id>https://thib.me/blog-posts-and-front-end-development</id>
+    <content type="html"><![CDATA[<p>This is more of an announcement rather than a post: I’m now a regular contributor to <a href="http://www.springload.co.nz/blog">Springload’s blog</a>.</p>
+
+<!-- more -->
+
+<p>The posts are a good mix of code, web design, user experience, and day to day agency life. My first post is about <a href="http://www.springload.co.nz/blog/a-stable-front-end-stack-for-2016/">picking stable front-end technologies</a>, and there are many more in the making!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Exporting D3 charts to SVG and PNG: a library]]></title>
+    <link href="https://thib.me/exporting-d3-charts-to-svg-and-png"/>
+    <updated>2016-02-09T23:46:18+00:00</updated>
+    <id>https://thib.me/exporting-d3-charts-to-svg-and-png</id>
+    <content type="html"><![CDATA[<p>Lately I’ve been very interested in the topic of exporting PNG or SVG assets from D3 charts created with SVG and CSS. This is a very important topic because those exports are often a big selling point of paid data visualizations libraries, and rightfully so – you can’t reuse a dynamic D3 chart as easily as a static asset.</p>
+
+<!-- more -->
+
+<p>I have been watching for techniques to do this for a while now, and only recently stumbled upon <a href="https://github.com/exupero/saveSvgAsPng">saveSvgAsPng</a>. This takes care of a lot of the heavylifting:</p>
+
+<ul>
+  <li>Getting the chart’s SVG from the DOM.</li>
+  <li>Inlining stylesheets into this SVG.</li>
+  <li>Inlining images as well.</li>
+  <li>Putting all of this in an image tag, and passing it through a canvas to end up with a PNG.</li>
+</ul>
+
+<p>While none of those steps taken individually are hard to build, their combination is tricky to get right. The limitation here is that those exports need to be generated on the fly within a browser – this isn’t built for a use case where generated images need to be readily avaible for each chart.</p>
+
+<p>This is where <a href="http://electron.atom.io/">Electron</a> comes into play. Electron is a wrapper around <a href="http://www.chromium.org/developers/content-module">Chromium’s rendering stack</a> (the Blink rendering engine, V8, and other important goodies). We can use this semi-headless browser to render our charts and export them!</p>
+
+<p>I ended up writing a library that does just that: <a href="https://github.com/thibaudcolas/export-svg-chart">https://github.com/thibaudcolas/export-svg-chart</a>. I don’t like reinventing the wheel so this is just an elegant wrapper around the tools mentioned above, with a very straightforward API.</p>
+
+<p>If you want to use this library, you’ll need to point it to a page where to extract your chart from – you can make this page use custom “export / print” styles, or just use the same rendering as the one of your default dynamic chart.</p>
+
+<p>There’s a more technical write-up of my findings on GitHub here: https://github.com/thibaudcolas/chart-export-example. I also tried to make this work in <a href="https://github.com/tmpvar/jsdom">jsdom</a>, but didn’t go with that solution since it came with too many trade-offs.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Front-end development podcasts]]></title>
+    <link href="https://thib.me/front-end-development-podcasts"/>
+    <updated>2015-07-20T11:28:41+00:00</updated>
+    <id>https://thib.me/front-end-development-podcasts</id>
+    <content type="html"><![CDATA[<p>I’m an avid podcast listener. I usually listen to at least two hours of podcasts per day at work, plus some more while cooking. My commute is unfortunately too short for any podcast listening to happen.</p>
+
+<p>Among those podcasts there are quite a few that are related to front-end development. Those are a gold mine in terms of keeping up with your craft because you get to hear interviews, conversations that go beyond the “new features in X announcements”.</p>
+
+<!-- more -->
+
+<p>Anyway. Here are a few that I particularly like and that deserve a shoutout:</p>
+
+<ul>
+  <li><a href="http://javascriptjabber.com/">JavaScript Jabber</a> - <em>Your Prototype for Great Code</em>, one of my favourites.</li>
+  <li><a href="http://ttlpodcast.com">TTL Podcast</a> — The only podcast that’s really dedicated to front-end. And it’s amazing!</li>
+  <li><a href="http://nodeup.com/">NodeUp</a> - A Node.js podcast. Not front-end but very interesting nonetheless.</li>
+  <li><a href="http://thewebplatform.libsyn.com/">The Web Platform Podcast</a> — Discovered that one more recently, very good guests.</li>
+</ul>
+
+<p>And here are three other podcasts that I’ve started listening only very recently:</p>
+
+<ul>
+  <li><a href="http://fullstackradio.com/">Full Stack Radio</a></li>
+  <li><a href="http://pathtoperf.com/">The Path to Performance</a></li>
+  <li><a href="http://svgimmersion.com/">SVG Immersion</a></li>
+</ul>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[OS//OS in ten tweets]]></title>
+    <link href="https://thib.me/osos-in-ten-tweets"/>
+    <updated>2015-04-21T08:59:38+00:00</updated>
+    <id>https://thib.me/osos-in-ten-tweets</id>
+    <content type="html"><![CDATA[<p>I got to go to the <a href="http://www.opensourceopensociety.com/">Open Source // Open Society</a> conference here in Wellington thanks to my employer, who was a sponsor. This is probably the conference where I used Twitter the most, so I decided to change my habits and try to summarize it with ten tweets.</p>
+
+<!-- more -->
+
+<h2 id="github-patchwork-event-bizdojo-two-days-before-the-conference">GitHub Patchwork event <a href="https://twitter.com/bizdojo">@BizDojo</a>, two days before the conference</h2>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>Excited to have <a href="https://twitter.com/kellective">@kellective</a> talking about getting started in open source at Patchwork Wellington! <a href="http://t.co/5T10g4lx1t">pic.twitter.com/5T10g4lx1t</a></p>&mdash; Jessica Lord (@jllord) <a href="https://twitter.com/jllord/status/587892175939117056">April 14, 2015</a>
+</blockquote>
+
+<h2 id="first-day-talk-by-benbalter">First day: talk by <a href="https://twitter.com/benbalter">@benbalter</a></h2>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>The plague of DC: too many lawyers. <a href="https://twitter.com/hashtag/OSOS?src=hash">#OSOS</a> is on :) <a href="http://t.co/MCTkwLl5eZ">pic.twitter.com/MCTkwLl5eZ</a></p>&mdash; Thibaud Colas (@thibaud_colas) <a href="https://twitter.com/thibaud_colas/status/588453328650051584">April 15, 2015</a>
+</blockquote>
+
+<h2 id="secund-day-yay">Secund day: Yay!</h2>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>It&#39;d be great for <a href="https://twitter.com/WikiNewZealand">@WikiNewZealand</a> to be open sourced! <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> cc <a href="https://twitter.com/GracefulLillian">@GracefulLillian</a></p>&mdash; Thibaud Colas (@thibaud_colas) <a href="https://twitter.com/thibaud_colas/status/588461590673891328">April 15, 2015</a>
+</blockquote>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>Slides from my talk at <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> about <a href="https://twitter.com/NZonthefence">@NZonthefence</a> are up here: <a href="http://t.co/xnXypZHJAr">http://t.co/xnXypZHJAr</a></p>&mdash; Josh Barr (@joshbarrnz) <a href="https://twitter.com/joshbarrnz/status/588824010940555264">April 16, 2015</a>
+</blockquote>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>Our <a href="https://twitter.com/hashtag/venuehack?src=hash">#venuehack</a> <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> idea: share the ideas with wider comm using ninja reporters and news feed screens <a href="https://twitter.com/GovHackNZ">@GovHackNZ</a> <a href="http://t.co/AnXT5G1XgK">pic.twitter.com/AnXT5G1XgK</a></p>&mdash; Nicole Williams (@envycollect) <a href="https://twitter.com/envycollect/status/588849752042708992">April 16, 2015</a>
+</blockquote>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>&quot;Ship the 0.1 not the 1.0&quot; Makes so much sense to open the work from the start, not when it&#39;s over! <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a></p>&mdash; Thibaud Colas (@thibaud_colas) <a href="https://twitter.com/thibaud_colas/status/588855095137206272">April 17, 2015</a>
+</blockquote>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>Data usability &amp; use — is the NZ govt doing Linked Open Data? <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> <a href="https://twitter.com/hashtag/SemWeb?src=hash">#SemWeb</a></p>&mdash; Thibaud Colas (@thibaud_colas) <a href="https://twitter.com/thibaud_colas/status/588859064815202304">April 17, 2015</a>
+</blockquote>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>We got great feedback about how to make our consultation listing better - thank you to all who came :) ^AW <a href="http://t.co/TJxA7nfBVX">http://t.co/TJxA7nfBVX</a> <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a></p>&mdash; Govt.nz Team (@govtnz) <a href="https://twitter.com/govtnz/status/588890374547972097">April 17, 2015</a>
+</blockquote>
+<blockquote class="twitter-tweet" lang="en">
+    <p>My key takeaway from <a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a>: the open source community should be more inclusive. OSS doesn&#39;t have to be scary nor nerdy!</p>&mdash; Thibaud Colas (@thibaud_colas) <a href="https://twitter.com/thibaud_colas/status/588921514075955201">April 17, 2015</a>
+</blockquote>
+
+<blockquote class="twitter-tweet" lang="en">
+    <p>I&#39;m amazed at how many people with good ideas care about open source and open society.&#10;<a href="https://twitter.com/hashtag/OSOS2015?src=hash">#OSOS2015</a> <a href="https://twitter.com/hashtag/ososnz?src=hash">#ososnz</a> <a href="https://twitter.com/hashtag/opensource?src=hash">#opensource</a></p>&mdash; Wilfred Godfrey (@wjagodfrey) <a href="https://twitter.com/wjagodfrey/status/588921496472424448">April 17, 2015</a>
+</blockquote>
+
+<script async="" src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[My new job at Springload]]></title>
+    <link href="https://thib.me/my-new-job-at-springload"/>
+    <updated>2015-04-14T09:12:20+00:00</updated>
+    <id>https://thib.me/my-new-job-at-springload</id>
+    <content type="html"><![CDATA[<p>I just got a new job! I am now a Senior Front-End Developer at <a href="http://springload.co.nz/">Springload</a>, Wellington, New Zealand. This is amazing!</p>
+
+<p>After two years working in the IT &amp; BPS consulting field at CGI, I was fed up with client work and I wanted something new. New Zealand was the right place to look for a job. Springload is the right place to work at. Wellington is a nice place to live in! I got it all!</p>
+
+<!-- more -->
+
+<p>In hindsight, I’d have only left my previous job and moved to New Zealand sooner. Here are a few reasons why:</p>
+
+<ul>
+  <li>New Zealand is the place. New Zealand has amazing scenery, nice weather, a very good tech scene and very kind people.</li>
+  <li>IT salaries are high! The average IT salary for a Java/.NET developer with 2 years of experience is around NZD 75’000$, which is 50’000€ at the current exchange rate. My own salary nearly doubled: I’d have never dreamt of having such a raise by just finding the right job in the right place!</li>
+  <li>The cost of life is quite low. It is definitely lower than in France.</li>
+</ul>
+
+<p>I’d love to expand on this but it feels like I’m just bragging. If you’re thinking about moving to NZ, definitely get in touch: <a href="https://twitter.com/thibaud_colas">@thibaud_colas</a>.</p>
+
+<p>So why Springload then? Well, at first because they were sponsporing New Zealand’s biggest conference (<a href="http://www.webstock.org.nz/">Webstock</a>) and because they had many OSS projects on <a href="http://github.com/springload/">GitHub</a>. Because their work looked good, and I could definitely relate to what they said about their culture on their website.</p>
+
+<p>Then because my first interview with the founder and our Front-end director went very well. The secund too. I was still in Auckland at the time, so they even flew me down to Wellington!</p>
+
+<p>And that’s what got me sold in the end: I got to meet with the people I’d end up working with every day, I got to see that they had a great office and that they all seemed very happy working here. I got to see that it was an amazing place to work at!</p>
+
+<p>So we just took our bags again, moved a few hundred kilometers again, and here I am at Springload. Yay!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GGJ 2015: RubeGoldBash]]></title>
+    <link href="https://thib.me/ggj-2015-rubegoldbash"/>
+    <updated>2015-02-04T10:50:08+00:00</updated>
+    <id>https://thib.me/ggj-2015-rubegoldbash</id>
+    <content type="html"><![CDATA[<p>This post is my post-mortem after the 2015 edition of the <a href="http://globalgamejam.org/">Global Game Jam</a>. It was my first Game Jam ever, and I planned to learn the <a href="http://phaser.io/">Phaser</a> framework beforehand in order to get going quickly.</p>
+
+<p>It was completely useless, as I decided to build a game in Bash, <a href="https://github.com/thibaudcolas/rubegoldbash">RubeGoldBash</a>.</p>
+
+<!-- more -->
+
+<p>I started thinking about command-line games when I had a look at the <a href="http://globalgamejam.org/news/introducing-ggj-2015-diversifiers">diversifiers</a> in the morning, particularly:</p>
+
+<blockquote>
+  <p><strong>Batch Job</strong>: The game is a batch file from any operating system, using command line tools found in an out of the box installation.</p>
+</blockquote>
+
+<p>Inspiring isn’t it? I got my idea when we learned the theme: <em>What do we do now?</em> See, UNIX tools are known to be easy to combine together. You start with a fixed toolset, but by combining them together you end up with endless possibilities. I would build a game about building <a href="https://en.wikipedia.org/wiki/Rube_Goldberg_machine">Rube Goldberg machines</a> in bash, <em>RubeGoldBash</em> (thanks for the name Chris).</p>
+
+<p><a href="https://commons.wikimedia.org/wiki/File:Professor_Lucifer_Butts.gif#mediaviewer/File:Professor_Lucifer_Butts.gif"><img alt="Professor Lucifer Butts.gif" src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Professor_Lucifer_Butts.gif" /></a><br />"<a href="https://commons.wikimedia.org/wiki/File:Professor_Lucifer_Butts.gif#mediaviewer/File:Professor_Lucifer_Butts.gif">Professor Lucifer Butts</a>" by Rube Goldberg - an old comic book. Licensed under Public Domain via <a href="//commons.wikimedia.org/wiki/">Wikimedia Commons</a>.</p>
+
+<p>This is what it looks like:</p>
+
+<iframe src="http://showterm.io/a06f7dcf548aadbbcb751" width="640" height="480"></iframe>
+
+<p>The goal of the game is to create the most crazy, useless, enormous bash one-liners by combining basic commands together, using as many pipes as possible. Quite simple!</p>
+
+<p>Here are a few examples which are worth a lot of points:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Retrieve the weather for your location</span>
+curl <span class="nt">-s</span> ip.appspot.com | xargs <span class="nt">-n</span> 1 curl <span class="nt">-s</span> <span class="s2">"freegeoip.net/csv/</span><span class="nv">$1</span><span class="s2">"</span> | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">','</span> <span class="nt">-f</span> <span class="s1">'9 10'</span> | <span class="nb">sed</span> <span class="s1">'s/,/\&amp;lon=/g'</span> | xargs <span class="nt">-n</span> 1 <span class="nb">echo</span> <span class="s2">"http://api.openweathermap.org/data/2.5/weather?mode=html&amp;lat=</span><span class="nv">$1</span><span class="s2">"</span> | <span class="nb">sed</span> <span class="s1">'s/ //g'</span> | xargs <span class="nt">-n</span> 1 curl <span class="nt">-s</span> <span class="nv">$1</span> | <span class="nb">tee </span>weather.html
+<span class="c"># Same request, with display to the prompt using lynx</span>
+curl <span class="nt">-s</span> ip.appspot.com | xargs <span class="nt">-n</span> 1 curl <span class="nt">-s</span> <span class="s2">"freegeoip.net/csv/</span><span class="nv">$1</span><span class="s2">"</span> | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">','</span> <span class="nt">-f</span> <span class="s1">'9 10'</span> | <span class="nb">sed</span> <span class="s1">'s/,/\&amp;lon=/g'</span> | xargs <span class="nt">-n</span> 1 <span class="nb">echo</span> <span class="s2">"http://api.openweathermap.org/data/2.5/weather?mode=html&amp;lat=</span><span class="nv">$1</span><span class="s2">"</span> | <span class="nb">sed</span> <span class="s1">'s/ //g'</span> | xargs <span class="nt">-n</span> 1 curl <span class="nt">-s</span> <span class="nv">$1</span> | lynx <span class="nt">-stdin</span> <span class="nt">-dump</span>
+
+<span class="c"># Retrieve the answer to "When will it be done?" (scraping) and make a nice voice read it for you.</span>
+lynx <span class="nt">--dump</span> whenwillitbedone.trgdy.com | <span class="nb">head</span> <span class="nt">-n</span> 8 | <span class="nb">tail</span> <span class="nt">-n</span> 4 | <span class="nb">tr</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">n"</span> <span class="s1">' '</span> | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">'['</span> <span class="nt">-f</span> 1 | <span class="nb">sed</span> <span class="s1">'s/   //g'</span> | <span class="nb">sed</span> <span class="s2">"s/'/ /g"</span> | perl <span class="nt">-pe</span> <span class="s1">'s/([^a-zA-Z0-9_.!~*()'</span><span class="se">\'</span><span class="s1">'-])/sprintf("%%%02X", ord($1))/ge'</span> | xargs <span class="nt">-n</span> 1 <span class="nb">echo</span> <span class="s2">"http://translate.google.com/translate_tts?ie=UTF-8&amp;tl=en&amp;q=</span><span class="nv">$1</span><span class="s2">"</span> | <span class="nb">sed</span> <span class="s1">'s/ //g'</span> | xargs <span class="nt">-n</span> 1 curl <span class="nt">-s</span> <span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span> <span class="o">&gt;</span> whenwillitbedone.mp3
+<span class="c"># File can be read with</span>
+afplay whenwillitbedone.mp3
+
+<span class="c"># Count the number of folders in the current working directory.</span>
+<span class="nb">ls</span> <span class="nt">-l</span> | <span class="nb">cut</span> <span class="nt">-c</span> 1 | <span class="nb">grep </span>d | <span class="nb">wc</span> <span class="nt">-l</span>
+
+<span class="c"># Find the longest name</span>
+<span class="nb">cat</span> /usr/share/dict/propernames | <span class="nb">grep</span> <span class="s1">'S'</span> | <span class="nb">awk</span> <span class="s1">'{print length($1), $1}'</span> | <span class="nb">sort</span> <span class="nt">-n</span> | <span class="nb">tail</span> <span class="nt">-n</span> 1 | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">' '</span> <span class="nt">-f</span> 2
+<span class="c"># And spell it</span>
+<span class="nb">cat</span> /usr/share/dict/propernames | <span class="nb">grep</span> <span class="s1">'S'</span> | <span class="nb">awk</span> <span class="s1">'{print length($1), $1}'</span> | <span class="nb">sort</span> <span class="nt">-n</span> | <span class="nb">tail</span> <span class="nt">-n</span> 1 | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">' '</span> <span class="nt">-f</span> 2 | say
+</code></pre></div></div>
+
+<p>You can then submit your score by using the <code class="highlighter-rouge">rubeshare</code> command:</p>
+
+<iframe style="width: 100%; height: 600px" src="http://highscore.rubegoldbash.com/?limit=5"></iframe>
+
+<p>And voilà! Your score is on the wall, your commands are stored as Gists on GitHub, and you can boast about your newly gained UNIX wizardry skills!</p>
+
+<p>Thanks <a href="http://globalgamejam.org/">Global Game Jam</a>, I had a lot of fun.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Eloquent JSON Resume theme]]></title>
+    <link href="https://thib.me/the-eloquent-json-resume-theme"/>
+    <updated>2015-01-29T12:53:36+00:00</updated>
+    <id>https://thib.me/the-eloquent-json-resume-theme</id>
+    <content type="html"><![CDATA[<p>I just released something on npm! Actually, my resume theme (<a href="https://www.npmjs.com/package/jsonresume-theme-eloquent">Eloquent</a>) has been available in the npm repository for over a month, but now it just reached 1.0.0.</p>
+
+<!-- more -->
+
+<p>Here’s what it looks like:</p>
+
+<p><img src="https://raw.githubusercontent.com/thibaudcolas/jsonresume-theme-eloquent/master/raw/theme-screenshot.png" alt="Eloquent screenshot" /></p>
+
+<p>I created this <a href="https://jsonresume.org/">JSON Resume</a> theme when I was looking for a new job. My aim was to make sure that I’d be able to deliver a full-lenght version of my resume if needed. I started by <a href="https://github.com/JMPerez/linkedin-to-json-resume">retrieving my LinkedIn data</a>, and used the Elegant theme.</p>
+
+<p>Here are features that are new compared to Elegant:</p>
+
+<ul>
+  <li>Mobile First theme.</li>
+  <li>Download your resume with a single click, in a single file.</li>
+  <li>Keep your resume offline if you want to: the theme is self-contained.</li>
+  <li>Obfuscates your email address and phone number from spam bots.</li>
+  <li>Gorgeous Open Sans web font.</li>
+  <li>Optimized for print and screen readers.</li>
+  <li>Contains Schema.org markup to make the most of your content.</li>
+  <li>All fields are optional, pick what you need!</li>
+</ul>
+
+<p>IMHO it is much more important for a resume to look great than for a portfolio. The resume may be the first thing any recruiter will look at, and first impression matters. <strong>A lot.</strong> That’s why the theme is quite boring to look at — its most important feature is to make your content stand out.</p>
+
+<p>Here’s the result on my own resume: <a href="https://thib.me/cv">thib.me/cv</a>.</p>
+
+]]></content>
+  </entry>
+  
+</feed>
