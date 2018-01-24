@@ -1,30 +1,32 @@
 .side-shadow-border {
-  @include box-shadow(lighten($sidebar-bg, 5) 0 1px);
+  box-shadow: lighten($sidebar-bg, 5) 0 1px;
 }
 aside.sidebar {
   overflow: hidden;
   color: $sidebar-color;
   text-shadow: lighten($sidebar-bg, 8) 0 1px;
-  a { @extend .force-wrap; }
+  a {
+    @extend .force-wrap;
+  }
   section {
     @extend .sans;
-    font-size: .8em;
+    font-size: 0.8em;
     line-height: 1.4em;
     margin-bottom: 1.5em;
     h1 {
       margin: 1.5em 0 0;
-      padding-bottom: .2em;
+      padding-bottom: 0.2em;
       border-bottom: 1px solid $sidebar-border;
       @extend .side-shadow-border;
       + p {
-        padding-top: .4em;
+        padding-top: 0.4em;
       }
     }
   }
   img {
     @extend .flex-content;
     @extend .basic-alignment;
-    @include shadow-box($border: #fff .3em solid);
+    @include shadow-box($border: #fff 0.3em solid);
   }
   ul {
     margin-bottom: 0.5em;
@@ -32,7 +34,7 @@ aside.sidebar {
   }
   li {
     list-style: none;
-    padding: .5em 0;
+    padding: 0.5em 0;
     margin: 0;
     border-bottom: 1px solid $sidebar-border;
     @extend .side-shadow-border;
@@ -42,11 +44,13 @@ aside.sidebar {
   }
   a {
     color: inherit;
-    @include transition(color .5s);
+    transition: color 0.5s;
   }
   &:hover a {
     color: $sidebar-link-color;
-    &:hover { color: $sidebar-link-color-hover; }
+    &:hover {
+      color: $sidebar-link-color-hover;
+    }
   }
 }
 .aside-alt-link {

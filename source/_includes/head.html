@@ -6,7 +6,7 @@
   <title>{{ title }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
-  <link rel="stylesheet" href="{{ site.baseurl }}/stylesheets/screen.css">
+  <link rel="stylesheet" href="{{ site.baseurl }}/css/screen.css">
 
   {% capture description %}{% if content %}{{ content | raw_content | strip_html | condense_spaces | truncate:150 }}{% else %}{{ site.description | strip_html | condense_spaces | truncate:150 }}{% endif %}{% endcapture %}
   <meta name="description" content="{{ description }}">
