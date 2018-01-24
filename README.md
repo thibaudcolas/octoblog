@@ -1,4 +1,4 @@
-# [blog.thib.me](http://blog.thib.me) [![Build Status](https://travis-ci.org/thibaudcolas/octoblog.svg?branch=master)](https://travis-ci.org/thibaudcolas/octoblog)
+# [thib.me blog](https://thib.me) [![Build Status](https://travis-ci.org/thibaudcolas/octoblog.svg?branch=master)](https://travis-ci.org/thibaudcolas/octoblog)
 
 > My personal blog. Notes, thoughts and open-source software.
 

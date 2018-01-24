@@ -3,11 +3,11 @@
 # ----------------------- #
 
 baseurl: ''
-url: http://blog.thib.me
+url: https://thib.me
 title: Thibaud’s blog
 subtitle: Notes, thoughts, and open-source software
 author: Thibaud Colas
-authorsite: http://thib.me
+authorsite: https://thib.me
 # simple_search: http://google.com/search
 description: Logbook of a software engineer navigating web development
 keywords: thibaud colas thibaudcolas blog software engineer web developer javascript
